@@ -5,3 +5,5 @@ dist
 .idea
 
 MANIFEST
+
+*__pycache__
