@@ -16,7 +16,7 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
 
 ## バージョン
 
-0.0.1
+0.0.2
 
 ## API一覧
 
@@ -25,6 +25,11 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
         - aggregate_by_named_index_and_keys `#`
     - filter
         - drop_rows_by_index `#`
+    - stack
+        - stack_list_column `#`
+- pandasmania
+    - stack
+        - stack_list_column `#`
 
 > ### testing status
 > 
