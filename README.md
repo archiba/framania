@@ -16,7 +16,7 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
 
 ## バージョン
 
-0.0.2
+0.0.3
 
 ## API一覧
 
@@ -30,6 +30,14 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
 - pandasmania
     - stack
         - stack_list_column `#`
+    - na
+        - fbfill_series `#`
+    - transform
+        - timeseries_value_changed `#`
+        - timeseries_id_changed `#`
+        - grouper_for_timeseries `#`
+        - group_row_number `#`
+
 
 > ### testing status
 > 
