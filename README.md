@@ -69,5 +69,5 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
 
 ## インストール
 ```bash
-pip install framania==0.0.1
+pip install framania
 ```
