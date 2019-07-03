@@ -16,7 +16,7 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
 
 ## バージョン
 
-0.0.5
+0.0.6
 
 ## API一覧
 
@@ -28,10 +28,12 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
     - stack
         - stack_list_column `#`
         - stack_dict_column `#`
+        - stack_columns `#`
 - pandasmania
     - stack
         - stack_list_column `#`
         - stack_dict_column `#`
+        - stack_columns `#`
     - na
         - fbfill_series `#`
     - transform

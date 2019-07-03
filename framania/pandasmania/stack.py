@@ -2,6 +2,7 @@ from typing import Any, List
 
 import pandas
 from pandas import DataFrame
+from pandas.core.indexes.frozen import FrozenList
 
 
 def stack_list_column(pd: DataFrame, list_column: Any, output_dtype: Any, keep_columns: List[Any] = None):
@@ -120,3 +121,65 @@ def stack_dict_column(pd: DataFrame, dict_column: Any, label_dtype: Any, value_d
                                f'{dict_column}{label_suffix}': ls})
     result.reset_index(keep_columns, drop=False, inplace=True)
     return result
+
+
+def stack_columns(pd: DataFrame, target_columns: List[Any], keep_columns: List[Any],
+                  label_name: Any = 'stack_label', output_name: Any = 'stacked',
+                  label_dtype: Any = 'object', output_dtype: Any = 'object'):
+    """
+    API to create stack pandas dataframe from specific columns.
+
+    Args:
+        df (pandas.DataFrame): target pandas dataframe
+        target_columns (List[Any]): name of columns to stack.
+        keep_columns (List[Any]): result dataframe will contains original index, stacked column, and keep_columns
+        label_name (Any): name of label column in stack result
+        output_name (Any): name of output column in stack result
+        label_dtype (Any): dtype of label column in stack result
+        output_dtype (Any): dtype of output column in stack result
+    Returns:
+        result pandas dataframe
+    Examples:
+        >>> import pandas
+        >>> pd = pandas.DataFrame({'a': [1, 2, 3, 4], 'b': [2, 3, 4, 5], 'c': [5, 6, 7, 8],
+        ...                        'label': ['a', 'b', 'c', 'd']},
+        ...                        index=[100, 200, 300, 400])
+        >>> print(pd)
+        ... # doctest: +NORMALIZE_WHITESPACE
+             a  b  c label
+        100  1  2  5     a
+        200  2  3  6     b
+        300  3  4  7     c
+        400  4  5  8     d
+        >>> result = stack_columns(pd, ['a', 'b'], ['label'])
+        >>> print(result)
+        ... # doctest: +NORMALIZE_WHITESPACE
+            label stack_label  stacked
+        100     a           a        1
+        100     a           b        2
+        200     b           a        2
+        200     b           b        3
+        300     c           a        3
+        300     c           b        4
+        400     d           a        4
+        400     d           b        5
+        >>> print(result.dtypes)
+        ... # doctest: +NORMALIZE_WHITESPACE
+        label          object
+        stack_label    object
+        stacked        object
+        dtype: object
+    """
+    indexed = pd.set_index(keep_columns, append=True)
+    stacked = indexed[target_columns].stack()
+    new_index_names = list(stacked.index.names)
+    new_index_names[-1] = label_name
+    renamed = stacked.rename_axis(index=FrozenList(new_index_names))
+    renamed.name = output_name
+
+    result_df = DataFrame(renamed).reset_index(level=keep_columns + [label_name])
+
+    result_df[label_name] = result_df[label_name].astype(label_dtype)
+    result_df[output_name] = result_df[output_name].astype(output_dtype)
+
+    return result_df
