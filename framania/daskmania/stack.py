@@ -4,6 +4,7 @@ import pandas
 from dask.dataframe import DataFrame
 from framania.pandasmania.stack import stack_list_column as pandas_stack_list_column
 from framania.pandasmania.stack import stack_dict_column as pandas_stack_dict_column
+from framania.pandasmania.stack import stack_columns as pandas_stack_columns
 
 
 def stack_list_column(dd: DataFrame, list_column: Any, output_dtype: Any, keep_columns: List[Any] = None):
@@ -101,3 +102,62 @@ def stack_dict_column(dd: DataFrame, dict_column: Any, label_dtype: Any, value_d
                                             label_suffix, value_suffix),
         meta=meta,
         )
+
+
+def stack_columns(dd: DataFrame, target_columns: List[Any], keep_columns: List[Any],
+                  label_name: Any = 'stack_label', output_name: Any = 'stacked',
+                  label_dtype: Any = 'object', output_dtype: Any = 'object'):
+    """
+    API to create stack dask dataframe from specific columns.
+
+    Args:
+        df (pandas.DataFrame): target pandas dataframe
+        target_columns (List[Any]): name of columns to stack.
+        keep_columns (List[Any]): result dataframe will contains original index, stacked column, and keep_columns
+        label_name (Any): name of label column in stack result
+        output_name (Any): name of output column in stack result
+        label_dtype (Any): dtype of label column in stack result
+        output_dtype (Any): dtype of output column in stack result
+    Returns:
+        result dask dataframe
+    Examples:
+        >>> import dask.dataframe
+        >>> import pandas
+        >>> pd = pandas.DataFrame({'a': [1, 2, 3, 4], 'b': [2, 3, 4, 5], 'c': [5, 6, 7, 8],
+        ...                        'label': ['a', 'b', 'c', 'd']},
+        ...                        index=[100, 200, 300, 400])
+        >>> print(pd)
+        ... # doctest: +NORMALIZE_WHITESPACE
+             a  b  c label
+        100  1  2  5     a
+        200  2  3  6     b
+        300  3  4  7     c
+        400  4  5  8     d
+        >>> dd = dask.dataframe.from_pandas(pd, npartitions=2)
+        >>> result = stack_columns(dd, ['a', 'b'], ['label'], label_dtype='object', output_dtype='int')
+        >>> print(result.compute())
+        ... # doctest: +NORMALIZE_WHITESPACE
+            label stack_label  stacked
+        100     a           a        1
+        100     a           b        2
+        200     b           a        2
+        200     b           b        3
+        300     c           a        3
+        300     c           b        4
+        400     d           a        4
+        400     d           b        5
+        >>> print(result.dtypes)
+        ... # doctest: +NORMALIZE_WHITESPACE
+        label          object
+        stack_label    object
+        stacked         int64
+        dtype: object
+    """
+    meta = {k_column: dd._meta[k_column] for k_column in keep_columns}
+    meta[label_name] = pandas.Series([], dtype=label_dtype)
+    meta[output_name] = pandas.Series([], dtype=output_dtype)
+    meta = pandas.DataFrame(meta, index=dd._meta.index)
+
+    return dd.map_partitions(lambda pd: pandas_stack_columns(pd, target_columns, keep_columns,
+                                                             label_name, output_name, label_dtype, output_dtype),
+                             meta=meta)
