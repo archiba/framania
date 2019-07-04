@@ -1,5 +1,6 @@
 from typing import Any, List
 
+import numpy
 import pandas
 from pandas import DataFrame
 from pandas.core.indexes.frozen import FrozenList
@@ -57,6 +58,92 @@ def stack_list_column(pd: DataFrame, list_column: Any, output_dtype: Any, keep_c
     result.reset_index(keep_columns, drop=False, inplace=True)
     return result
 
+def stack_list_columns(pd: DataFrame, list_columns: List[Any], output_dtypes: List[Any],
+                       keep_columns: List[Any] = None):
+    """
+        API to create stack pandas dataframe from columns containing list-like objects.
+        List elements which has same list index will be assigned to same row.
+        If length of lists are not same, NaN will be filled automatically.
+
+        Args:
+            df (pandas.DataFrame): target pandas dataframe
+            list_columns (List[Any]): name of columns containing list-like objects.
+            output_dtypes (List[Any]): dtypes of output columns. may depends on contents of list.
+            keep_columns (List[Any]): result dataframe will contains original index, stacked column, and keep_columns
+        Returns:
+            result pandas dataframe
+        Examples:
+            >>> import pandas
+            >>> pd = pandas.DataFrame({'a1': ['1,2,3', '2,3,4', '3,4'], 'a2': ['a,b,c', 'b,c,d', 'c,d'],
+            ...          'b': [1, 2, 3], 'idx': [0, 1, 2]}).set_index('idx')
+            >>> pd['a1-list'] = pd['a1'].str.split(',')
+            >>> pd['a2-list'] = pd['a2'].str.split(',')
+            >>> print(pd)
+            ... # doctest: +NORMALIZE_WHITESPACE
+                    a1     a2  b    a1-list    a2-list
+            idx
+            0    1,2,3  a,b,c  1  [1, 2, 3]  [a, b, c]
+            1    2,3,4  b,c,d  2  [2, 3, 4]  [b, c, d]
+            2      3,4    c,d  3     [3, 4]     [c, d]
+            >>> result = stack_list_columns(pd, ['a1-list', 'a2-list'], ['str', 'str'], ['b'])
+            >>> print(result)
+            ... # doctest: +NORMALIZE_WHITESPACE
+                 b a1-list a2-list
+            idx
+            0    1       1       a
+            0    1       2       b
+            0    1       3       c
+            1    2       2       b
+            1    2       3       c
+            1    2       4       d
+            2    3       3       c
+            2    3       4       d
+            >>> pd = pandas.DataFrame({'a1': ['1,2,3', '2,3,4', '3,4'], 'a2': ['a,b,c', 'b,c', 'c,d'],
+            ...          'b': [1, 2, 3], 'idx': [0, 1, 2]}).set_index('idx')
+            >>> pd['a1-list'] = pd['a1'].str.split(',')
+            >>> pd['a2-list'] = pd['a2'].str.split(',')
+            >>> print(pd)
+            ... # doctest: +NORMALIZE_WHITESPACE
+                    a1     a2  b    a1-list    a2-list
+            idx
+            0    1,2,3  a,b,c  1  [1, 2, 3]  [a, b, c]
+            1    2,3,4    b,c  2  [2, 3, 4]     [b, c]
+            2      3,4    c,d  3     [3, 4]     [c, d]
+            >>> result = stack_list_columns(pd, ['a1-list', 'a2-list'], ['str', 'str'], ['b'])
+            >>> print(result)
+            ... # doctest: +NORMALIZE_WHITESPACE
+                 b a1-list a2-list
+            idx
+            0    1       1       a
+            0    1       2       b
+            0    1       3       c
+            1    2       2       b
+            1    2       3       c
+            1    2       4     NaN
+            2    3       3       c
+            2    3       4       d
+        """
+    ipd = pd.set_index(keep_columns, append=True)
+
+    index = []
+    values = [[] for _ in list_columns]
+
+    # TODO: more efficient stack implementation if exists
+    for idx, row in ipd.iterrows():
+        list_column_values = [row[list_column] for list_column in list_columns]
+        max_len = max(len(lcv) for lcv in list_column_values)
+        index.extend([idx] * max_len)
+        for vs, _list_column_values in zip(values, list_column_values):
+            vlen = len(_list_column_values)
+            none_values = [numpy.nan] * (max_len - vlen)
+            vs.extend(_list_column_values)
+            vs.extend(none_values)
+        values.extend(row)
+    ix = pandas.Index(index, names=ipd.index.names)
+    series_s = [pandas.Series(vs, dtype=output_dtype, index=ix) for vs, output_dtype in zip(values, output_dtypes)]
+    result = pandas.DataFrame({list_column: s for list_column, s in zip(list_columns, series_s)})
+    result.reset_index(keep_columns, drop=False, inplace=True)
+    return result
 
 def stack_dict_column(pd: DataFrame, dict_column: Any, label_dtype: Any, value_dtype: Any,
                       keep_columns: List[Any] = None, label_suffix: str = '_label', value_suffix: str = '_value'):

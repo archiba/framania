@@ -27,11 +27,13 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
         - drop_rows_by_index `#`
     - stack
         - stack_list_column `#`
+        - stack_list_columns `#`
         - stack_dict_column `#`
         - stack_columns `#`
 - pandasmania
     - stack
         - stack_list_column `#`
+        - stack_list_columns `#`
         - stack_dict_column `#`
         - stack_columns `#`
     - na
