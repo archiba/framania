@@ -3,6 +3,7 @@ from typing import Any, List
 import pandas
 from dask.dataframe import DataFrame
 from framania.pandasmania.stack import stack_list_column as pandas_stack_list_column
+from framania.pandasmania.stack import stack_list_columns as pandas_stack_list_columns
 from framania.pandasmania.stack import stack_dict_column as pandas_stack_dict_column
 from framania.pandasmania.stack import stack_columns as pandas_stack_columns
 
@@ -51,6 +52,81 @@ def stack_list_column(dd: DataFrame, list_column: Any, output_dtype: Any, keep_c
     return dd.map_partitions(lambda pd: pandas_stack_list_column(pd, list_column, output_dtype, keep_columns),
                              meta=meta)
 
+
+def stack_list_columns(dd: DataFrame, list_columns: List[Any], output_dtypes: List[Any],
+                       keep_columns: List[Any] = None):
+    """
+        API to create stack dask dataframe from columns containing list-like objects.
+        List elements which has same list index will be assigned to same row.
+        If length of lists are not same, NaN will be filled automatically.
+
+        Args:
+            df (pandas.DataFrame): target dask dataframe
+            list_columns (List[Any]): name of columns containing list-like objects.
+            output_dtypes (List[Any]): dtypes of output columns. may depends on contents of list.
+            keep_columns (List[Any]): result dataframe will contains original index, stacked column, and keep_columns
+        Returns:
+            result dask dataframe
+        Examples:
+            >>> import dask.dataframe
+            >>> import pandas
+            >>> pd = pandas.DataFrame({'a1': ['1,2,3', '2,3,4', '3,4'], 'a2': ['a,b,c', 'b,c,d', 'c,d'],
+            ...          'b': [1, 2, 3], 'idx': [0, 1, 2]}).set_index('idx')
+            >>> pd['a1-list'] = pd['a1'].str.split(',')
+            >>> pd['a2-list'] = pd['a2'].str.split(',')
+            >>> print(pd)
+            ... # doctest: +NORMALIZE_WHITESPACE
+                    a1     a2  b    a1-list    a2-list
+            idx
+            0    1,2,3  a,b,c  1  [1, 2, 3]  [a, b, c]
+            1    2,3,4  b,c,d  2  [2, 3, 4]  [b, c, d]
+            2      3,4    c,d  3     [3, 4]     [c, d]
+            >>> dd = dask.dataframe.from_pandas(pd, npartitions=2)
+            >>> result = stack_list_columns(dd, ['a1-list', 'a2-list'], ['str', 'str'], ['b'])
+            >>> print(result.compute())
+            ... # doctest: +NORMALIZE_WHITESPACE
+                 b a1-list a2-list
+            idx
+            0    1       1       a
+            0    1       2       b
+            0    1       3       c
+            1    2       2       b
+            1    2       3       c
+            1    2       4       d
+            2    3       3       c
+            2    3       4       d
+            >>> pd = pandas.DataFrame({'a1': ['1,2,3', '2,3,4', '3,4'], 'a2': ['a,b,c', 'b,c', 'c,d'],
+            ...          'b': [1, 2, 3], 'idx': [0, 1, 2]}).set_index('idx')
+            >>> pd['a1-list'] = pd['a1'].str.split(',')
+            >>> pd['a2-list'] = pd['a2'].str.split(',')
+            >>> print(pd)
+            ... # doctest: +NORMALIZE_WHITESPACE
+                    a1     a2  b    a1-list    a2-list
+            idx
+            0    1,2,3  a,b,c  1  [1, 2, 3]  [a, b, c]
+            1    2,3,4    b,c  2  [2, 3, 4]     [b, c]
+            2      3,4    c,d  3     [3, 4]     [c, d]
+            >>> dd = dask.dataframe.from_pandas(pd, npartitions=2)
+            >>> result = stack_list_columns(dd, ['a1-list', 'a2-list'], ['str', 'str'], ['b'])
+            >>> print(result.compute())
+            ... # doctest: +NORMALIZE_WHITESPACE
+                 b a1-list a2-list
+            idx
+            0    1       1       a
+            0    1       2       b
+            0    1       3       c
+            1    2       2       b
+            1    2       3       c
+            1    2       4     NaN
+            2    3       3       c
+            2    3       4       d
+        """
+    meta = {k_column: dd[k_column].dtype for k_column in keep_columns}
+    for list_column, output_dtype in zip(list_columns, output_dtypes):
+        meta[list_column] = output_dtype
+
+    return dd.map_partitions(lambda pd: pandas_stack_list_columns(pd, list_columns, output_dtypes, keep_columns),
+                             meta=meta)
 
 def stack_dict_column(dd: DataFrame, dict_column: Any, label_dtype: Any, value_dtype: Any,
                       keep_columns: List[Any] = None, label_suffix: str = '_label', value_suffix: str = '_value'):
