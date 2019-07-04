@@ -43,6 +43,7 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
         - timeseries_id_changed `#`
         - grouper_for_timeseries `#`
         - group_row_number `#`
+        - asstr `#`
 
 
 > ### testing status

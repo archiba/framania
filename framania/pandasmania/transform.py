@@ -1,5 +1,6 @@
 from typing import List, Any
 
+import numpy
 import pandas
 from pandas import Series, DataFrame
 
@@ -254,3 +255,77 @@ def group_row_number(pd: DataFrame, groupby: List[Any], ascending: bool=True):
     m_temp_df['row_number'] = \
         m_temp_df['row_number_y'].fillna(1).astype(int) - m_temp_df['row_number_x'] - 1
     return m_temp_df['row_number']
+
+def asstr(ps: pandas.Series, keep_nan: bool = True, remove_dotzero: bool = False):
+    """
+    API to make pandas Series as type string keeping NaN value.
+
+    Args:
+        ps (pandas.Series): target pandas series
+        keep_nan (bool): if keep NaN as NaN or make nan as string "nan"
+        remove_dotzero (bool): if remove
+    Returns:
+        string type pandas Series
+    Examples:
+        >>> import pandas
+        >>> pd = pandas.DataFrame({
+        ...     'a': [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, None, 4.01],
+        ...     'b': [100, 100, 200, 300, 50, 60, 70, 80, 10, 20, -1, 100]
+        ... })
+        >>> print(pd)
+        ... # doctest: +NORMALIZE_WHITESPACE
+               a    b
+        0   1.00  100
+        1   1.00  100
+        2   1.00  200
+        3   1.00  300
+        4   2.00   50
+        5   2.00   60
+        6   2.00   70
+        7   2.00   80
+        8   3.00   10
+        9   3.00   20
+        10   NaN   -1
+        11  4.01  100
+        >>> result = asstr(pd.a)
+        >>> print(result)
+        0      1.0
+        1      1.0
+        2      1.0
+        3      1.0
+        4      2.0
+        5      2.0
+        6      2.0
+        7      2.0
+        8      3.0
+        9      3.0
+        10     NaN
+        11    4.01
+        Name: a, dtype: object
+        >>> result = asstr(pd.a, remove_dotzero=True)
+        >>> print(result)
+        0        1
+        1        1
+        2        1
+        3        1
+        4        2
+        5        2
+        6        2
+        7        2
+        8        3
+        9        3
+        10     NaN
+        11    4.01
+        Name: a, dtype: object
+    """
+
+    if not keep_nan:
+        return ps.astype('str')
+
+    str_s: pandas.Series = ps.astype('str')
+    str_s[ps.isnull()] = numpy.nan
+
+    if remove_dotzero:
+        str_s = str_s.str.replace('.0$', '')
+
+    return str_s
