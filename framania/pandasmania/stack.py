@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from typing import Any, List
 
 import numpy
@@ -57,6 +58,7 @@ def stack_list_column(pd: DataFrame, list_column: Any, output_dtype: Any, keep_c
     result = pandas.DataFrame({list_column: s})
     result.reset_index(keep_columns, drop=False, inplace=True)
     return result
+
 
 def stack_list_columns(pd: DataFrame, list_columns: List[Any], output_dtypes: List[Any],
                        keep_columns: List[Any] = None):
@@ -141,9 +143,10 @@ def stack_list_columns(pd: DataFrame, list_columns: List[Any], output_dtypes: Li
         values.extend(row)
     ix = pandas.Index(index, names=ipd.index.names)
     series_s = [pandas.Series(vs, dtype=output_dtype, index=ix) for vs, output_dtype in zip(values, output_dtypes)]
-    result = pandas.DataFrame({list_column: s for list_column, s in zip(list_columns, series_s)})
+    result = pandas.DataFrame(OrderedDict([(list_column, s) for list_column, s in zip(list_columns, series_s)]))
     result.reset_index(keep_columns, drop=False, inplace=True)
     return result
+
 
 def stack_dict_column(pd: DataFrame, dict_column: Any, label_dtype: Any, value_dtype: Any,
                       keep_columns: List[Any] = None, label_suffix: str = '_label', value_suffix: str = '_value'):
@@ -204,8 +207,8 @@ def stack_dict_column(pd: DataFrame, dict_column: Any, label_dtype: Any, value_d
     ix = pandas.Index(index, names=ipd.index.names)
     ls = pandas.Series(labels, dtype=label_dtype, index=ix)
     vs = pandas.Series(values, dtype=value_dtype, index=ix)
-    result = pandas.DataFrame({f'{dict_column}{value_suffix}': vs,
-                               f'{dict_column}{label_suffix}': ls})
+    result = pandas.DataFrame(OrderedDict([(f'{dict_column}{value_suffix}', vs),
+                                           (f'{dict_column}{label_suffix}', ls)]))
     result.reset_index(keep_columns, drop=False, inplace=True)
     return result
 
