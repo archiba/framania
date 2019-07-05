@@ -1,7 +1,10 @@
+from collections import OrderedDict
 from typing import Any, List
 
 import pandas
 from dask.dataframe import DataFrame
+
+from framania.daskmania.meta import make_meta, map_partitions_as_meta
 from framania.pandasmania.stack import stack_list_column as pandas_stack_list_column
 from framania.pandasmania.stack import stack_list_columns as pandas_stack_list_columns
 from framania.pandasmania.stack import stack_dict_column as pandas_stack_dict_column
@@ -46,9 +49,9 @@ def stack_list_column(dd: DataFrame, list_column: Any, output_dtype: Any, keep_c
         2    3      3
         2    3      4
     """
-    meta = {k_column: dd[k_column].dtype for k_column in keep_columns}
-    meta[list_column] = output_dtype
-
+    meta = make_meta((dd.index.name, dd.index.dtype),
+                     [(k_column, dd[k_column].dtype) for k_column in keep_columns] +
+                     [(list_column, output_dtype)])
     return dd.map_partitions(lambda pd: pandas_stack_list_column(pd, list_column, output_dtype, keep_columns),
                              meta=meta)
 
@@ -121,12 +124,12 @@ def stack_list_columns(dd: DataFrame, list_columns: List[Any], output_dtypes: Li
             2    3       3       c
             2    3       4       d
         """
-    meta = {k_column: dd[k_column].dtype for k_column in keep_columns}
-    for list_column, output_dtype in zip(list_columns, output_dtypes):
-        meta[list_column] = output_dtype
-
-    return dd.map_partitions(lambda pd: pandas_stack_list_columns(pd, list_columns, output_dtypes, keep_columns),
-                             meta=meta)
+    meta = make_meta((dd.index.name, dd.index.dtype),
+                     [(k_column, dd[k_column].dtype) for k_column in keep_columns] +
+                     [(l_column, l_column_t) for l_column, l_column_t in zip(list_columns, output_dtypes)])
+    return map_partitions_as_meta(dd,
+                                  lambda pd: pandas_stack_list_columns(pd, list_columns, output_dtypes, keep_columns),
+                                  meta)
 
 def stack_dict_column(dd: DataFrame, dict_column: Any, label_dtype: Any, value_dtype: Any,
                       keep_columns: List[Any] = None, label_suffix: str = '_label', value_suffix: str = '_value'):
@@ -167,17 +170,15 @@ def stack_dict_column(dd: DataFrame, dict_column: Any, label_dtype: Any, value_d
         C    3      500       a
         C    3     1000       c
     """
-    meta = {k_column: dd._meta[k_column] for k_column in keep_columns}
-    meta[f'{dict_column}{value_suffix}'] = pandas.Series([], dtype=value_dtype)
-    meta[f'{dict_column}{label_suffix}'] = pandas.Series([], dtype=label_dtype)
-    meta = pandas.DataFrame(meta, index=dd._meta.index)
-
+    meta = make_meta((dd.index.name, dd.index.dtype),
+                     [(k_column, dd[k_column].dtype) for k_column in keep_columns] +
+                     [(f'{dict_column}{value_suffix}', value_dtype), (f'{dict_column}{label_suffix}', label_dtype)])
     return dd.map_partitions(
         lambda pd: pandas_stack_dict_column(pd, dict_column,
                                             label_dtype, value_dtype, keep_columns,
                                             label_suffix, value_suffix),
         meta=meta,
-        )
+    )
 
 
 def stack_columns(dd: DataFrame, target_columns: List[Any], keep_columns: List[Any],
@@ -229,11 +230,9 @@ def stack_columns(dd: DataFrame, target_columns: List[Any], keep_columns: List[A
         stacked         int64
         dtype: object
     """
-    meta = {k_column: dd._meta[k_column] for k_column in keep_columns}
-    meta[label_name] = pandas.Series([], dtype=label_dtype)
-    meta[output_name] = pandas.Series([], dtype=output_dtype)
-    meta = pandas.DataFrame(meta, index=dd._meta.index)
-
+    meta = make_meta((dd.index.name, dd.index.dtype),
+                     [(k_column, dd[k_column].dtype) for k_column in keep_columns] +
+                     [(label_name, label_dtype), (output_name, output_dtype)])
     return dd.map_partitions(lambda pd: pandas_stack_columns(pd, target_columns, keep_columns,
                                                              label_name, output_name, label_dtype, output_dtype),
                              meta=meta)
