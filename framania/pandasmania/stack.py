@@ -273,3 +273,58 @@ def stack_columns(pd: DataFrame, target_columns: List[Any], keep_columns: List[A
     result_df[output_name] = result_df[output_name].astype(output_dtype)
 
     return result_df
+
+
+def unstack_column(pd: DataFrame, unstack_columns: List[Any], on: List[Any], value_column: Any, splitter: str = '_'):
+    """
+    API to create stack pandas dataframe from specific columns.
+
+    Args:
+        df (pandas.DataFrame): target pandas dataframe
+        target_columns (List[Any]): name of columns to stack.
+        keep_columns (List[Any]): result dataframe will contains original index, stacked column, and keep_columns
+        label_name (Any): name of label column in stack result
+        output_name (Any): name of output column in stack result
+        label_dtype (Any): dtype of label column in stack result
+        output_dtype (Any): dtype of output column in stack result
+    Returns:
+        result pandas dataframe
+    Examples:
+        >>> import pandas
+        >>> pd = pandas.DataFrame({'a': [1, 2, 3, 4], 'b': [2, 3, 4, 5], 'c': [5, 6, 7, 8],
+        ...                        'label': ['a', 'b', 'c', 'd']},
+        ...                        index=[100, 200, 300, 400])
+        >>> print(pd)
+        ... # doctest: +NORMALIZE_WHITESPACE
+             a  b  c label
+        100  1  2  5     a
+        200  2  3  6     b
+        300  3  4  7     c
+        400  4  5  8     d
+        >>> result = unstack_column(pd, ['a', 'b'], ['label'], 'c')
+        >>> print(result)
+        ... # doctest: +NORMALIZE_WHITESPACE
+          label  1_2  2_3  3_4  4_5
+        0     a  5.0  NaN  NaN  NaN
+        1     b  NaN  6.0  NaN  NaN
+        2     c  NaN  NaN  7.0  NaN
+        3     d  NaN  NaN  NaN  8.0
+        >>> print(result.dtypes)
+        ... # doctest: +NORMALIZE_WHITESPACE
+        label     object
+        1_2      float64
+        2_3      float64
+        3_4      float64
+        4_5      float64
+        dtype: object
+    """
+    index_df = pd.set_index(on + unstack_columns)
+    result = index_df[[value_column]].unstack(level=unstack_columns)
+    column_len = len(result.columns)
+    column_names = []
+    for values_i in range(column_len):
+        unstack_column_values = \
+            splitter.join([str(result.columns.get_level_values(c)[values_i]) for c in unstack_columns])
+        column_names.append(unstack_column_values)
+    result.columns = column_names
+    return result.reset_index(level=on)
