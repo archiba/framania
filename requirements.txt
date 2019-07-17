@@ -1,3 +1,5 @@
 pandas
 dask
 pytest
+intake
+intake_parquet

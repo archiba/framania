@@ -25,6 +25,7 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
         - aggregate_by_named_index_and_keys `#`
     - filter
         - drop_rows_by_index `#`
+        - drop_duplicates_by_named_index_and_keys `#`
     - stack
         - stack_list_column `#`
         - stack_list_columns `#`
@@ -33,6 +34,7 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
     - util
         - make_meta `#`
         - map_partitions_as_meta `#`
+    - api `##`
 - pandasmania
     - stack
         - stack_list_column `#`
@@ -42,13 +44,21 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
         - unstack_column `#`
     - na
         - fbfill_series `#`
+    - filter
+        - drop_duplicates_by_named_index_and_keys `#`
     - transform
         - timeseries_value_changed `#`
         - timeseries_id_changed `#`
         - grouper_for_timeseries `#`
         - group_row_number `#`
         - asstr `#`
-
+    - api `##`
+- intakemania
+    - util
+        - add_source_to_catalog `#`
+        - dump_dask_to_intake `#`
+        - dump_pandas_to_intake `#`
+    - api `##`
 
 > ### testing status
 > 
