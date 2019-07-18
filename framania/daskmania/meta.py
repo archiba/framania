@@ -39,7 +39,7 @@ def map_partitions_as_meta(dd: DataFrame, func: Callable[..., pandas.DataFrame],
     """
     API to do map_partitions, and reformat result using meta. It may avoid error caused by map_partitions result and meta don't match.
 
-    Args:
+        Args:
             dd (DataFrame): dask dataframe to do map_partitions.
             func (Callable[[[pandas.DataFrame, ...]], pandas.DataFrame]): function for map_partitions.
             meta (pandas.DataFrame): expected schema of map_partitions result.
