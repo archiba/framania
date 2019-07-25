@@ -3,3 +3,5 @@ dask
 pytest
 intake
 intake_parquet
+ipython
+jupyter
