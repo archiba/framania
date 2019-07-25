@@ -136,7 +136,6 @@ class FramaniaExtendedIntakeCatalog:
     def dump_dask(self, dd: DataFrame, data_name: str, version: str,
                   data_dir: Union[str, Path], upstream_sources: List['FramaniaExtendedIntakeSource'] = None,
                   **kwargs):
-        md5hash = ddmd5hash(dd)
         if isinstance(data_dir, str):
             data_dir = Path(data_dir)
 
@@ -146,10 +145,12 @@ class FramaniaExtendedIntakeCatalog:
         if 'engine' in kwargs:
             parquet_kwargs['engine'] = kwargs['engine']
 
+        to_parquet_result = dd.to_parquet(str(parquet_dir), **kwargs)
+
         psource = ParquetSource(str(parquet_dir), **parquet_kwargs)
+        md5hash = ddmd5hash(psource.to_dask())
         framania_psource = FramaniaExtendedIntakeSource(psource, data_name, version,
                                                         md5hash, upstream_sources)
-        to_parquet_result = dd.to_parquet(str(parquet_dir), **kwargs)
         self.append(framania_psource)
 
         return framania_psource, to_parquet_result
@@ -158,23 +159,7 @@ class FramaniaExtendedIntakeCatalog:
                     data_dir: Union[str, Path], upstream_sources: List['FramaniaExtendedIntakeSource'] = None,
                     npartitions: int = 1, **kwargs):
         dd = from_pandas(pd, npartitions=npartitions)
-        md5hash = ddmd5hash(dd)
-        if isinstance(data_dir, str):
-            data_dir = Path(data_dir)
-
-        parquet_dir = data_dir / data_name
-
-        parquet_kwargs = {}
-        if 'engine' in kwargs:
-            parquet_kwargs['engine'] = kwargs['engine']
-
-        psource = ParquetSource(str(parquet_dir), **parquet_kwargs)
-        framania_psource = FramaniaExtendedIntakeSource(psource, data_name, version,
-                                                        md5hash.hexdigest(), upstream_sources)
-        to_parquet_result = dd.to_parquet(str(parquet_dir), **kwargs)
-        self.append(framania_psource)
-
-        return framania_psource, to_parquet_result
+        self.dump_dask(dd, data_name, version, data_dir, upstream_sources, **kwargs)
 
 
 class FramaniaExtendedIntakeSource:
