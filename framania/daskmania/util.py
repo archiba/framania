@@ -27,11 +27,12 @@ def md5hash(dd: DataFrame) -> hashlib.md5:
         1      1  e
         2    100  f
         >>> dd = dask.dataframe.from_pandas(pd, npartitions=2)
-        >>> md5hash(dd).hexdigest()
-        '9542a39e6523f006446a2a3c68bcbd8a'
+        >>> md5hash(dd)
+        'e650778d6cdca953fad30cccedd4c5f1'
     """
     results = dd.map_partitions(md5hash_pandas).compute()
     m = hashlib.md5()
     for v in results:
-        m.update(v.digest())
-    return m
+        m.update(v.encode('utf-8'))
+    return m.hexdigest()
+

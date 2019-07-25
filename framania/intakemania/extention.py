@@ -148,7 +148,7 @@ class FramaniaExtendedIntakeCatalog:
 
         psource = ParquetSource(str(parquet_dir), **parquet_kwargs)
         framania_psource = FramaniaExtendedIntakeSource(psource, data_name, version,
-                                                        md5hash.hexdigest(), upstream_sources)
+                                                        md5hash, upstream_sources)
         to_parquet_result = dd.to_parquet(str(parquet_dir), **kwargs)
         self.append(framania_psource)
 

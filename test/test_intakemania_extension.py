@@ -36,7 +36,7 @@ class TestFramaniaExtendedIntake(TestCase):
         assert intake_source.metadata['version_name'] == 'raw_csv1_1.0'
         assert intake_source.metadata['name'] == source.name == 'raw_csv1'
         assert intake_source.metadata['upstream'] == []
-        assert intake_source.metadata['md5hash'] == source.md5hash == 'd5a5c2bb9d4281f1b0e55337355d288a'
+        assert intake_source.metadata['md5hash'] == source.md5hash == '12cd8e064eafadfc8f06af01d31fa8f5'
 
         assert source.upstream_sources == []
 
@@ -62,7 +62,7 @@ class TestFramaniaExtendedIntake(TestCase):
         assert intake_source.metadata['version_name'] == 'raw_csv2_1.0'
         assert intake_source.metadata['name'] == source.name == 'raw_csv2'
         assert intake_source.metadata['upstream'] == []
-        assert intake_source.metadata['md5hash'] == source.md5hash == 'd71557c92f2ed1846652c7ce769a4b7e'
+        assert intake_source.metadata['md5hash'] == source.md5hash == 'f4466ed4b50c808bfeb64681b4f33dda'
 
         assert source.upstream_sources == []
 
@@ -100,8 +100,8 @@ class TestFramaniaExtendedIntake(TestCase):
         assert intake_source.metadata['version_name'] == 'transform_csv1_1.0'
         assert intake_source.metadata['name'] == source.name == 'transform_csv1'
         assert intake_source.metadata['upstream'] == [{'version_name': 'raw_csv1_1.0',
-                                                       'md5hash': 'd5a5c2bb9d4281f1b0e55337355d288a'}]
-        assert intake_source.metadata['md5hash'] == source.md5hash == 'd71557c92f2ed1846652c7ce769a4b7e'
+                                                       'md5hash': '12cd8e064eafadfc8f06af01d31fa8f5'}]
+        assert intake_source.metadata['md5hash'] == source.md5hash == 'f4466ed4b50c808bfeb64681b4f33dda'
 
         assert source.upstream_sources == [self.catalog['raw_csv1_1.0']]
 
@@ -114,10 +114,10 @@ class TestFramaniaExtendedIntake(TestCase):
         assert intake_source.metadata['version_name'] == 'transform_csv1_2_1.0'
         assert intake_source.metadata['name'] == source.name == 'transform_csv1_2'
         assert intake_source.metadata['upstream'] == [{'version_name': 'raw_csv1_1.0',
-                                                       'md5hash': 'd5a5c2bb9d4281f1b0e55337355d288a'},
+                                                       'md5hash': '12cd8e064eafadfc8f06af01d31fa8f5'},
                                                       {'version_name': 'raw_csv2_1.0',
-                                                       'md5hash': 'd71557c92f2ed1846652c7ce769a4b7e'}]
-        assert intake_source.metadata['md5hash'] == source.md5hash == 'e875d34af26e1db441c33b86ed158e51'
+                                                       'md5hash': 'f4466ed4b50c808bfeb64681b4f33dda'}]
+        assert intake_source.metadata['md5hash'] == source.md5hash == '80d2fd6ad031412aa15c723dc550d81d'
 
         assert source.upstream_sources == [self.catalog['raw_csv1_1.0'], self.catalog['raw_csv2_1.0']]
 
@@ -144,11 +144,10 @@ class TestFramaniaExtendedIntake(TestCase):
         assert intake_source.metadata['version_name'] == 'transform_csv1_1.0'
         assert intake_source.metadata['name'] == source.name == 'transform_csv1'
         assert intake_source.metadata['upstream'] == [{'version_name': 'raw_csv1_1.0',
-                                                       'md5hash': 'd5a5c2bb9d4281f1b0e55337355d288a'}]
-        assert intake_source.metadata['md5hash'] == source.md5hash == 'd71557c92f2ed1846652c7ce769a4b7e'
+                                                       'md5hash': '12cd8e064eafadfc8f06af01d31fa8f5'}]
+        assert intake_source.metadata['md5hash'] == source.md5hash == 'f4466ed4b50c808bfeb64681b4f33dda'
 
         assert source.upstream_sources == [self.catalog['raw_csv1_1.0']]
 
         raw_csv1_source, _ = load_raw_csv1(self.csvsource2.to_dask())
-        print(self.catalog.validate())
         assert not self.catalog.validate()[0]

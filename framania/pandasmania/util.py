@@ -24,11 +24,11 @@ def md5hash(pd: DataFrame) -> hashlib.md5:
         0      1  d
         1      1  e
         2    100  f
-        >>> md5hash(pd).hexdigest()
+        >>> md5hash(pd)
         '80254916224f25f3701c2edc8afa8539'
     """
     hashes = pandas.util.hash_pandas_object(pd)
     m = hashlib.md5()
     for hash in hashes:
         m.update(hash.to_bytes(64, 'big'))
-    return m
+    return m.hexdigest()
