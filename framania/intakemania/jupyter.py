@@ -57,6 +57,7 @@ def begin_analysis(line):
 
 @register_line_magic
 def end_analysis(line):
+    get_ipython().user_global_ns['__framania_analysis_finished__'] = True
     if len(line) < 1:
         print('End analysis without result data.')
         return
@@ -69,7 +70,6 @@ def end_analysis(line):
     print(f'Dump dask dataframe {line} to catalog as {name}')
     catalog.dump_dask(result_var, name, version, data_dir, upstreams)
     print('End analysis.')
-    get_ipython().user_global_ns['__framania_analysis_finished__'] = True
 
 def validation_info_text(info, nest: int, name):
     t = '\t' * nest
