@@ -6,7 +6,7 @@ from unittest import TestCase
 import dask.dataframe
 from intake.source.csv import CSVSource
 
-from framania.intakemania.extention import FramaniaExtendedIntakeCatalog, analysis
+from framania.intakemania.extension import FramaniaExtendedIntakeCatalog, analysis
 
 
 class TestFramaniaExtendedIntake(TestCase):

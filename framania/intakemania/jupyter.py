@@ -4,7 +4,7 @@ from pathlib import Path
 from IPython import get_ipython
 from IPython.core.magic import register_line_magic
 
-from framania.intakemania.extention import FramaniaExtendedIntakeCatalog
+from framania.intakemania.extension import FramaniaExtendedIntakeCatalog
 
 
 @register_line_magic
@@ -19,9 +19,16 @@ def start_nb(line):
     get_ipython().user_global_ns['__framania_catalog_file__'] = Path(catalog_file)
     get_ipython().user_global_ns['__framania_data_dir__'] = Path(data_dir)
 
+    print(f'Start analysis notebook {analysis_name} (data directory: {Path(data_dir)})')
+
 
 @register_line_magic
 def begin_analysis(line):
+
+    if get_ipython().user_global_ns.get('__framania_analysis_finished__', True) is False:
+        print('Make sure previous analysis is ended.')
+        return
+
     parts = line.split(' ')
     if len(parts) < 2:
         print(
@@ -31,6 +38,7 @@ def begin_analysis(line):
     get_ipython().user_global_ns['__framania_analysis_name__'] = name
     get_ipython().user_global_ns['__framania_analysis_version__'] = version
     get_ipython().user_global_ns['__framania_analysis_upstream_names__'] = upstream_names
+    get_ipython().user_global_ns['__framania_analysis_finished__'] = False
 
     catalog = FramaniaExtendedIntakeCatalog(get_ipython().user_global_ns['__framania_catalog_file__'])
     upstreams = []
@@ -43,14 +51,15 @@ def begin_analysis(line):
     get_ipython().user_global_ns['__framania_analysis_upstreams__'] = upstreams
 
     for upstream in upstreams:
-        print(f'Register global variable {upstream.name}.')
+        print(f'Register global variable {upstream.name} from {upstream.name} {upstream.version}.')
         get_ipython().user_global_ns[upstream.name] = upstream.intake_source.to_dask()
 
 
 @register_line_magic
 def end_analysis(line):
     if len(line) < 1:
-        print('Make sure input `%end_analysis {result dask dataframe variable}`')
+        print('End analysis without result data.')
+        return
     result_var = get_ipython().user_global_ns[line]
     catalog = FramaniaExtendedIntakeCatalog(get_ipython().user_global_ns['__framania_catalog_file__'])
     name = get_ipython().user_global_ns['__framania_analysis_name__']
@@ -59,6 +68,8 @@ def end_analysis(line):
     data_dir = get_ipython().user_global_ns['__framania_data_dir__']
     print(f'Dump dask dataframe {line} to catalog as {name}')
     catalog.dump_dask(result_var, name, version, data_dir, upstreams)
+    print('End analysis.')
+    get_ipython().user_global_ns['__framania_analysis_finished__'] = True
 
 def validation_info_text(info, nest: int, name):
     t = '\t' * nest

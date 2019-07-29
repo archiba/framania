@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from typing import List, Optional, Any, Union, Dict, Tuple
 
@@ -139,7 +140,7 @@ class FramaniaExtendedIntakeCatalog:
         if isinstance(data_dir, str):
             data_dir = Path(data_dir)
 
-        parquet_dir = data_dir / data_name
+        parquet_dir = data_dir / data_name / version
 
         parquet_kwargs = {}
         if 'engine' in kwargs:
@@ -163,11 +164,24 @@ class FramaniaExtendedIntakeCatalog:
 
 
 class FramaniaExtendedIntakeSource:
+    good_name_chars = '[0-9|a-z|A-Z|\-|_]+'
+    good_version_chars = '[0-9|a-z|A-Z|\-|.]+'
+
     def __init__(self, intake_source: DataSource,
                  name: str, version: str,
                  md5hash: Optional[str] = None,
                  upstream_sources: Optional[List['FramaniaExtendedIntakeSource']] = None,
-                 existing_source: bool = False):
+                 existing_source: bool = False,
+                 metadata: Dict[Any, Any] = None):
+
+        if re.match(self.good_name_chars, name) is None:
+            raise Exception('Valid data name characters: [0-9, a-z, A-Z, -, _].')
+        if re.match(self.good_version_chars, version) is None:
+            raise Exception('Valid data version characters: [0-9, a-z, A-Z, -, .].')
+
+        if metadata is None:
+            metadata = {}
+
         self.intake_source = intake_source
         self.name = name
         self.version = version
@@ -188,6 +202,7 @@ class FramaniaExtendedIntakeSource:
                                 for source in self.upstream_sources]
 
             self.intake_source.metadata['upstream'] = upstream_sources
+            self.intake_source.metadata.update(metadata)
 
     def update_md5hash(self, md5hash):
         self.md5hash = md5hash

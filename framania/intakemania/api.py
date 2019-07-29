@@ -1,2 +1,2 @@
 from .util import *
-from .extention import FramaniaExtendedIntakeCatalog, FramaniaExtendedIntakeSource, analysis
+from .extension import FramaniaExtendedIntakeCatalog, FramaniaExtendedIntakeSource, analysis
