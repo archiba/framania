@@ -5,3 +5,7 @@ intake
 intake_parquet
 ipython
 jupyter
+dill
+holoviews
+bokeh
+flask
