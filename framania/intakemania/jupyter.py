@@ -4,7 +4,7 @@ from pathlib import Path
 from IPython import get_ipython
 from IPython.core.magic import register_line_magic
 
-from build.lib.framania.hvmania.manager import HVManiaManager
+from framania.hvmania.manager import HVManiaManager
 from framania.intakemania.extension import get_version_name
 from framania.intakemania.extension import FramaniaExtendedIntakeCatalog
 
