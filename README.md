@@ -58,6 +58,7 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
         - add_source_to_catalog `#`
         - dump_dask_to_intake `#`
         - dump_pandas_to_intake `#`
+        - persist_local `#`
     - extension
         - FramaniaExtendedIntakeCatalog `#`
         - FramaniaExtendedIntakeSource `#`

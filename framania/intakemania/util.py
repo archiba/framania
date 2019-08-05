@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Union
+from uuid import uuid4
 
 import dask
 import pandas
@@ -227,3 +228,59 @@ def dump_pandas_to_intake(pd: pandas.DataFrame, data_name: str, data_dir: Union[
     """
     dd = dask.dataframe.from_pandas(pd, npartitions=npartitions)
     return dump_dask_to_intake(dd, data_name, data_dir, catalog_file, **kwargs)
+
+
+def persist_local(dd: DataFrame, persist_dir: Union[str, Path], **kwargs):
+    """
+    API to persist dask dataframe as perquet files on disk.
+
+    Args:
+        dd: dask dataframe to persist.
+        persist_dir: directory where dask dataframe will be stored.
+        kwargs: Any options available for dask.dataframe.to_parquet. see https://docs.dask.org/en/latest/dataframe-api.html#dask.dataframe.to_parquet for detail.
+    Returns:
+        created parquet data source and dask to_parquet job (if you put compute=False in kwargs.)
+    Examples:
+        >>> import os
+        >>> import shutil
+        >>> import yaml
+        >>> from intake.source.csv import CSVSource
+        >>> import dask.dataframe
+        >>> import pandas
+        >>> pd = pandas.DataFrame({'a': [1, 2, 3, 4], 'b': [2, 3, 4, 5], 'c': [5, 6, 7, 8],
+        ...                        'label': ['a', 'b', 'c', 'd']},
+        ...                        index=[100, 200, 300, 400])
+        >>> print(pd)
+        ... # doctest: +NORMALIZE_WHITESPACE
+             a  b  c label
+        100  1  2  5     a
+        200  2  3  6     b
+        300  3  4  7     c
+        400  4  5  8     d
+        >>> dd = dask.dataframe.from_pandas(pd, npartitions=2)
+        >>> ddir = 'test/temp/data-dir/persist'
+        >>> dd2 = persist_local(dd, ddir)
+        >>> persist_id = dd2.persist_id
+        >>> print(dd2.compute())
+        ... # doctest: +NORMALIZE_WHITESPACE
+               a  b  c label
+        index
+        100    1  2  5     a
+        200    2  3  6     b
+        300    3  4  7     c
+        400    4  5  8     d
+        >>> assert (Path(ddir) / persist_id).exists()
+        >>> shutil.rmtree(ddir)
+    """
+    data_id = str(uuid4())
+    persist_dir = persist_dir if isinstance(persist_dir, Path) else Path(persist_dir)
+
+    persist_dir.mkdir(parents=True, exist_ok=True)
+
+    persist_catalog_file = Path(persist_dir) / 'persist_catalog.yaml'
+    psource, _ = dump_dask_to_intake(dd, data_id, persist_dir, persist_catalog_file, **kwargs)
+
+    new_dd = psource.to_dask()
+    new_dd.persist_id = data_id
+
+    return new_dd
