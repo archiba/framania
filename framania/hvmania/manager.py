@@ -32,7 +32,8 @@ class HVManiaManager():
         return Path(self.load_catalog()[item]['path'])
 
     def __setitem__(self, key: str, value):
-        holoviews.save(value, filename=str(self.directory / key), backend=self.renderer, fmt='html')
+        p = self.directory / f'{key}.html'
+        holoviews.save(value, filename=str(p), backend=self.renderer)
         c = self.load_catalog()
-        c[key] = {'path': str((self.directory / f'{key}.html').absolute())}
+        c[key] = {'path': str(p.absolute())}
         self.dump_catalog(c)
