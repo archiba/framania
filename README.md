@@ -84,11 +84,11 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
 
 ## リリース
 ```bash
-> pip install setuptools wheel twine
-> python setup.py sdist
-> python -m twine upload --repository  testpypi dist/*
-> python -m twine upload --repository  pypi dist/*
-> rm -rf dist *.egg-info MANIFEST
+pip install setuptools wheel twine
+python setup.py sdist
+python -m twine upload --repository  testpypi dist/*
+python -m twine upload --repository  pypi dist/*
+rm -rf dist *.egg-info MANIFEST
 
 ```
 
