@@ -23,6 +23,8 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
 - daskmania
     - aggregate
         - aggregate_by_named_index_and_keys `#`
+        - aggregate_as_series `#`
+        - aggregate_as_series_by_named_index_and_keys `#`
     - filter
         - drop_rows_by_index `#`
         - drop_duplicates_by_named_index_and_keys `#`
@@ -36,6 +38,8 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
         - map_partitions_as_meta `#`
     - api `##`
 - pandasmania
+    - aggregate
+        - aggregate_as_series
     - stack
         - stack_list_column `#`
         - stack_list_columns `#`
