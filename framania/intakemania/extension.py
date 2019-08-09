@@ -107,12 +107,14 @@ class FramaniaExtendedIntakeCatalog:
                     continue
 
                 source = self.intake_catalog[entry]
+                if source.metadata.get('extension', '') != 'framania':
+                    continue
+
+
                 if any([s['version_name'] not in finished for s in source.metadata['upstream']]):
                     continue
 
                 result[entry] = []
-                if source.metadata.get('extension', '') != 'framania':
-                    continue
 
                 validate_flag = True
                 name, version = version_and_name(entry)
