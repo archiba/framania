@@ -15,7 +15,7 @@ def parse_version(v: Any):
     if not isinstance(v, str):
         return v
 
-    version_info = (part if not part.isnumeric() else int(part) for part in v.split('.'))
+    version_info = tuple(part if not part.isnumeric() else int(part) for part in v.split('.'))
     return version_info
 
 
