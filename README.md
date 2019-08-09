@@ -16,7 +16,7 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
 
 ## バージョン
 
-0.4.3
+0.5.0
 
 ## API一覧
 
