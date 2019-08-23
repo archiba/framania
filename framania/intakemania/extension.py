@@ -85,7 +85,10 @@ class FramaniaExtendedIntakeCatalog:
         return self.find_by_version_name(versions[latest_version])
 
     def __getitem__(self, item: str) -> 'FramaniaExtendedIntakeSource':
-        return self.find_by_version_name(item)
+        try:
+            return self.find_by_version_name(item)
+        except:
+            return self.find_latest_source_by_name(item)
 
     def append(self, value: 'FramaniaExtendedIntakeSource'):
         add_source_to_catalog(value.intake_source, self.intake_catalog.path)
@@ -109,7 +112,6 @@ class FramaniaExtendedIntakeCatalog:
                 source = self.intake_catalog[entry]
                 if source.metadata.get('extension', '') != 'framania':
                     continue
-
 
                 if any([s['version_name'] not in finished for s in source.metadata['upstream']]):
                     continue
@@ -218,14 +220,40 @@ class FramaniaExtendedIntakeSource:
 
 
 def analysis(name: str, version: str,
-             catalog: FramaniaExtendedIntakeCatalog, sources: List[FramaniaExtendedIntakeSource],
+             catalog: FramaniaExtendedIntakeCatalog, sources: List[str],
              data_dir: Path):
+    """
+    Examples:
+        >>> import pandas
+        >>> import dask.dataframe
+        >>> from pathlib import Path
+        >>> import os
+        >>> import shutil
+        >>> ddir = Path('test/temp/data-dir')
+        >>> cfile = Path('test/temp/test-catalog.yaml')
+        >>> catalog = FramaniaExtendedIntakeCatalog(cfile)
+        >>> @analysis('test1', '1.0', catalog, [], ddir)
+        ... def test1():
+        ...     df = pandas.DataFrame({'a': [1,2,3], 'b': [2,3,4]})
+        ...     ddf = dask.dataframe.from_pandas(df, npartitions=1)
+        ...     return ddf
+        >>> @analysis('test2', '1.0', catalog, ['test1'], ddir)
+        ... def test2(test1):
+        ...     test1['c'] = test1.a * test1.b
+        ...     return test1
+        >>> _ = test1()
+        >>> _ = test2()
+        >>> os.remove(str(cfile))
+        >>> shutil.rmtree(str(ddir))
+    """
+
     def decorator_analysis(func):
         def wrapper(*args, **kwargs) -> Tuple[FramaniaExtendedIntakeSource, Any]:
+            upstream_sources = [catalog[source] for source in sources]
             input: Dict[str, FramaniaExtendedIntakeSource] = \
-                {source.name: source.intake_source.to_dask() for source in sources}
+                {source.name: source.intake_source.to_dask() for source in upstream_sources}
             result_dask = func(*args, **kwargs, **input)
-            result_source, dask_job = catalog.dump_dask(result_dask, name, version, data_dir, sources)
+            result_source, dask_job = catalog.dump_dask(result_dask, name, version, data_dir, upstream_sources)
             return result_source, dask_job
 
         return wrapper
