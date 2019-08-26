@@ -1,8 +1,75 @@
 from typing import List, Dict, Union, Any
 
 from dask.dataframe import DataFrame
+from pandas import MultiIndex
 
 from framania.pandasmania.aggregate import aggregate_as_series as aggregate_as_series_pandas
+
+
+def flatten_aggregated_columns(dd: DataFrame):
+    """
+    API to make aggregated columns that are MultiIndex style flat
+
+    Args:
+        pd: target dataframe
+    Returns:
+        result pandas dataframe
+    Examples:
+        >>> import dask.dataframe
+        >>> import pandas
+        >>> pd = pandas.DataFrame({'a': [1, 10, 100, 1, 1, 100], 'b': range(0, 600, 100), 'key': [0, 1, 2, 0, 1, 2]})
+        >>> print(pd)
+        ... # doctest: +NORMALIZE_WHITESPACE
+             a    b  key
+        0    1    0    0
+        1   10  100    1
+        2  100  200    2
+        3    1  300    0
+        4    1  400    1
+        5  100  500    2
+        >>> dd = dask.dataframe.from_pandas(pd, npartitions=2)
+        >>> groupby = dd.groupby(['key'])
+        >>> groupby_result = groupby.agg({'a': ['sum', 'min'], 'b': ['mean', 'sum', 'max']})
+        >>> print(groupby_result.compute())
+        ... # doctest: +NORMALIZE_WHITESPACE
+               a           b
+             sum  min   mean  sum  max
+        key
+        0      2    1  150.0  300  300
+        1     11    1  250.0  500  400
+        2    200  100  350.0  700  500
+        >>> flatten = flatten_aggregated_columns(groupby_result)
+        >>> print(flatten.compute())
+        ... # doctest: +NORMALIZE_WHITESPACE
+             a_sum  a_min  b_mean  b_sum  b_max
+        key
+        0        2      1   150.0    300    300
+        1       11      1   250.0    500    400
+        2      200    100   350.0    700    500
+        >>> print(flatten_aggregated_columns(dd).compute())
+        ... # doctest: +NORMALIZE_WHITESPACE
+             a    b  key
+        0    1    0    0
+        1   10  100    1
+        2  100  200    2
+        3    1  300    0
+        4    1  400    1
+        5  100  500    2
+    """
+    if not isinstance(dd.columns, MultiIndex) or dd.columns.nlevels != 2:
+        return dd
+
+    result = dd.copy()
+
+    columns = []
+    for l1, l2 in zip(dd.columns.get_level_values(0), dd.columns.get_level_values(1)):
+        if l2 == '':
+            columns.append(l1)
+        else:
+            columns.append('_'.join((l1, l2)))
+    result.columns = columns
+
+    return result
 
 
 def aggregate_by_named_index_and_keys(dd: DataFrame, keys: List[Any], agg: Dict[str, Union[str, List[str]]]):
