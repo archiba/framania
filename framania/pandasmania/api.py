@@ -1,3 +1,4 @@
+from .aggregate import *
 from .filter import *
 from .na import *
 from .stack import *
