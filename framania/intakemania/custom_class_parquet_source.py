@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import List, Union
 
 import intake
-import pandas
 from intake_parquet import ParquetSource
 import dask.dataframe as dd
 
@@ -21,6 +20,9 @@ def _load_with_pickle(pickle_str: str):
 
 
 class CustomClassParquetSource(ParquetSource):
+    """
+    originalのPython classが入っていたdask dataframeをpaquetから読み込むときに使うSource
+    """
     def to_spark(self):
         raise NotImplementedError("only use with dask")
 
@@ -31,16 +33,25 @@ class CustomClassParquetSource(ParquetSource):
         return self._df
 
     @classmethod
-    def from_parqeuet_source(cls, ps: ParquetSource):
+    def _from_parqeuet_source(cls, ps: ParquetSource):
         ccps = cls.__new__(cls)
         ccps.__dict__ = ps.__dict__
         return ccps
 
 
-def upload_with_custom_class(df: dd.DataFrame, path: Union[str, Path], custom_class_cols: List[str], **kwargs):
+def upload_with_custom_class(df: dd.DataFrame, path: Union[str, Path], custom_class_columns: List[str], **kwargs) -> CustomClassParquetSource:
+    """
+    オリジナルのPython classが入っているdask dataframeをparquet形式でintakeにuploadするときに使う関数。
+    intake.uploadの代わりに利用することができます。
+    :param df: 
+    :param path: 
+    :param custom_class_columns: originalのPython classが入っている列の名前のリスト
+    :param kwargs: pass intake.upload
+    :return: 
+    """
     df = df.copy()
-    for col in custom_class_cols:
+    for col in custom_class_columns:
         df[col] = df[col].map(_dump_with_pickle, meta=dd.utils.make_meta(df[col]))
     parquet_source: ParquetSource = intake.upload(df, str(path), **kwargs)
-    parquet_source.metadata.update({"custom_class_columns": custom_class_cols})
-    return CustomClassParquetSource.from_parqeuet_source(parquet_source)
+    parquet_source.metadata.update({"custom_class_columns": custom_class_columns})
+    return CustomClassParquetSource._from_parqeuet_source(parquet_source)
