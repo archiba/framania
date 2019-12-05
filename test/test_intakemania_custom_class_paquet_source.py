@@ -7,7 +7,7 @@ from dask.dataframe.utils import make_meta
 from intake.catalog.local import YAMLFileCatalog
 from intake.source.csv import CSVSource
 
-from framania.intakemania.custom_class_parquet_source import upload_with_custom_class, CustomClassParquetSource
+from framania.intakemania.user_defined_class_parquet_source import upload_with_user_defined_class, UserDefinedClassParquetSource
 from framania.pandasmania.util import md5hash
 
 
@@ -30,16 +30,16 @@ class TestFramaniaExtendedIntake(TestCase):
     def create_custom_source(df):
         filename = mktemp()
         df["d"] = df["b"].map(lambda x: MyClass(x), meta=make_meta(df["b"]))
-        source = upload_with_custom_class(df, filename, ["d"])
+        source = upload_with_user_defined_class(df, filename, ["d"])
 
         return source, filename
 
     def test_upload_with_custom_class(self):
         df = self.csvsource1.to_dask()
         source, _ = self.create_custom_source(df)
-        assert source.metadata["custom_class_columns"] == ["d"]
+        assert source.metadata["user_defined_class_columns"] == ["d"]
         assert df["d"].head().iloc[0] == MyClass("a")
-        assert isinstance(source, CustomClassParquetSource)
+        assert isinstance(source, UserDefinedClassParquetSource)
 
     def test_load_with_custom_class(self):
         df = self.csvsource1.to_dask()
