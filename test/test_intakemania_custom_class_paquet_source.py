@@ -63,6 +63,8 @@ sources: {}""")
 
     def test_persist_user_defined_parquet_source(self):
         df = self.csvsource1.to_dask()
-        source, _ = self.create_custom_source(df)
+        source, filename = self.create_custom_source(df)
 
         source.persist()
+
+        assert source.has_been_persisted
