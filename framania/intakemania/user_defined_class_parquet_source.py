@@ -52,7 +52,10 @@ class UserDefinedClassParquetSource(ParquetSource):
         store = PersistStore()
         path = store.getdir(self)
         out = self.export(path, **kwargs)
-        out.metadata["ttl"] = ttl
+        out.metadata.update({
+            "ttl": ttl,
+            'cat': {} if self.cat is None else self.cat.__getstate__(),
+        })
         store.add(self._tok, out)
         return out
 
@@ -64,8 +67,7 @@ class UserDefinedClassParquetSource(ParquetSource):
                     'original_source': self.__getstate__(),
                     'original_name': self.name,
                     'original_tok': self._tok,
-                    'persist_kwargs': kwargs,
-                    'cat': {} if self.cat is None else self.cat.__getstate__()}
+                    'persist_kwargs': kwargs,}
         out.metadata.update(metadata)
         out.name = self.name
         return out
