@@ -51,6 +51,12 @@ class UserDefinedClassParquetSource(ParquetSource):
             raise ValueError(f"{self.__class__.classname} dataframe only")
         store = PersistStore()
         path = store.getdir(self)
+        out = self.export(path, **kwargs)
+        out.metadata["ttl"] = ttl
+        store.add(self._tok, out)
+        return out
+
+    def export(self, path, **kwargs):
         df = self.to_dask()
         out = upload_with_user_defined_class(df, path, self.metadata["user_defined_class_columns"], **kwargs)
         metadata = {'timestamp': time(),
@@ -59,12 +65,9 @@ class UserDefinedClassParquetSource(ParquetSource):
                     'original_name': self.name,
                     'original_tok': self._tok,
                     'persist_kwargs': kwargs,
-                    'ttl': ttl,
                     'cat': {} if self.cat is None else self.cat.__getstate__()}
         out.metadata.update(metadata)
         out.name = self.name
-        store.add(self._tok, out)
-
         return out
 
 
