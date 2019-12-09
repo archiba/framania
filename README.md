@@ -1,6 +1,6 @@
 # framania - pandas/dask DataFrame API extension library
 
-[![Actions Status](https://github.com/archiba/framania/workflows/Python%20package/badge.svg)](https://github.com/archiba/framania/actions)
+[![Actions Status](https://github.com/archiba/framania/workflows/tests/badge.svg)](https://github.com/archiba/framania/actions)
 
 
 ## モチベーション
