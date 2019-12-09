@@ -1,5 +1,8 @@
 # framania - pandas/dask DataFrame API extension library
 
+[![Actions Status](https://github.com/archiba/framania/workflows/Python%20package/badge.svg)](https://github.com/archiba/framania/actions)
+
+
 ## モチベーション
 
 pandas/daskには、DataFrame操作のための充実したAPIが用意されています。
