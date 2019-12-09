@@ -1,10 +1,12 @@
 import pickle
 from base64 import b64decode, b64encode
 from pathlib import Path
+from time import time
 from typing import List, Union
 
 import intake
 import numpy
+from intake.container.persist import PersistStore
 from intake_parquet import ParquetSource
 import dask.dataframe as dd
 from pandas import Series
@@ -43,6 +45,32 @@ class UserDefinedClassParquetSource(ParquetSource):
         ccps = cls.__new__(cls)
         ccps.__dict__ = ps.__dict__
         return ccps
+
+    def persist(self, ttl=None, **kwargs):
+        if self.container != 'dataframe':
+            raise ValueError(f"{self.__class__.classname} dataframe only")
+        store = PersistStore()
+        path = store.getdir(self)
+        out = self.export(path, **kwargs)
+        out.metadata.update({
+            "ttl": ttl,
+            'cat': {} if self.cat is None else self.cat.__getstate__(),
+        })
+        store.add(self._tok, out)
+        return out
+
+    def export(self, path, **kwargs):
+        df = self.to_dask()
+        out = upload_with_user_defined_class(df, path, self.metadata["user_defined_class_columns"], **kwargs)
+        metadata = {'timestamp': time(),
+                    'original_metadata': self.metadata,
+                    'original_source': self.__getstate__(),
+                    'original_name': self.name,
+                    'original_tok': self._tok,
+                    'persist_kwargs': kwargs,}
+        out.metadata.update(metadata)
+        out.name = self.name
+        return out
 
 
 def upload_with_user_defined_class(df: dd.DataFrame, path: Union[str, Path], user_defined_class_columns: List[str], **kwargs) -> UserDefinedClassParquetSource:

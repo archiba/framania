@@ -60,3 +60,11 @@ sources: {}""")
         assert all(df.compute() == df2.compute())
         # TODO(higumachan): これが通らない
         # assert md5hash(df.compute()) == md5hash(df2.compute())
+
+    def test_persist_user_defined_parquet_source(self):
+        df = self.csvsource1.to_dask()
+        source, filename = self.create_custom_source(df)
+
+        source.persist()
+
+        assert source.has_been_persisted
