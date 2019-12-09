@@ -117,7 +117,7 @@ class TestFramaniaExtendedIntake(TestCase):
                                                        'md5hash': '12cd8e064eafadfc8f06af01d31fa8f5'},
                                                       {'version_name': 'raw_csv2_1.0',
                                                        'md5hash': 'f4466ed4b50c808bfeb64681b4f33dda'}]
-        assert intake_source.metadata['md5hash'] == source.md5hash == '80d2fd6ad031412aa15c723dc550d81d'
+        assert intake_source.metadata['md5hash'] == source.md5hash == '254d056fa3bc963bab43b478d64cd4b2'
 
         assert source.upstream_sources == [self.catalog['raw_csv1_1.0'], self.catalog['raw_csv2_1.0']]
 
