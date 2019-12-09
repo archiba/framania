@@ -84,7 +84,10 @@ class FramaniaExtendedIntakeCatalog:
         latest_version = list(sorted(versions.keys(), key=lambda v: parse_version(v), reverse=True))[0]
         return self.find_by_version_name(versions[latest_version])
 
-    def __getitem__(self, item: str) -> 'FramaniaExtendedIntakeSource':
+    def __getitem__(self, item: Union[str, 'FramaniaExtendedIntakeSource']) -> 'FramaniaExtendedIntakeSource':
+        if isinstance(item, FramaniaExtendedIntakeSource):
+            item = get_version_name(item.name, item.version)
+
         try:
             return self.find_by_version_name(item)
         except:
