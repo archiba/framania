@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Union
+from urllib.parse import urlparse
 from uuid import uuid4
 
 import dask
@@ -10,9 +11,60 @@ from intake import DataSource
 from intake_parquet import ParquetSource
 
 
-def initialize_catalog(catalog_file: Union[Path, str]):
-    if isinstance(catalog_file, str):
-        catalog_file = Path(catalog_file)
+class S3URL(str):
+    """
+    pathlib.Path like s3 url wrapper class.
+    """
+
+    def __new__(cls, content: str):
+        if not content.startswith('s3://'):
+            content = f's3://{content}'
+        return str.__new__(cls, content)
+
+    def __truediv__(self, other):
+        if not self.endswith('/'):
+            return S3URL(f'{self}/{other}')
+        else:
+            return S3URL(f'{self}{other}')
+
+    def bucket(self):
+        parsed = urlparse(self)
+        return parsed.netloc
+
+    def key(self):
+        parsed = urlparse(self)
+        return parsed.path.lstrip('/')
+
+
+def local_or_s3_path(v: Union[str, Path, S3URL]) -> Union[Path, S3URL]:
+    """
+    Convert input value into local path(pathlib.Path) or S3URL.
+    When yes, then return input value.
+    When no and value starts with s3://, then return s3 remote url.
+    Other case return local path
+
+    Args:
+        v: str, local path, or s3 remote url.
+    Returns:
+        local path or s3 remote url
+    Examples:
+        >>> assert isinstance(local_or_s3_path(Path('abc')), Path)
+        >>> assert isinstance(local_or_s3_path(S3URL('abc')), S3URL)
+        >>> assert isinstance(local_or_s3_path('abc'), Path)
+        >>> assert isinstance(local_or_s3_path('s3://abc'), S3URL)
+    """
+    if isinstance(v, Path):
+        return v
+    if isinstance(v, S3URL):
+        return v
+    if isinstance(v, str) and v.startswith('s3://'):
+        return S3URL(v)
+    else:
+        return Path(v)
+
+
+def initialize_catalog(catalog_file: Union[Path, S3URL, str]):
+    catalog_file = local_or_s3_path(catalog_file)
     try:
         catalog_contents = yaml.load(catalog_file.open().read(), Loader=yaml.SafeLoader)
     except FileNotFoundError:
@@ -52,8 +104,7 @@ def add_source_to_catalog(source: DataSource, catalog_file: Union[Path, str]):
         {'sources': {'csv-test1': {'args': {'urlpath': 'test/temp/test1.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}, 'csv-test2': {'args': {'urlpath': 'test/temp/test2.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}}}
         >>> os.remove(cfile)
     """
-    if isinstance(catalog_file, str):
-        catalog_file = Path(catalog_file)
+    catalog_file = local_or_s3_path(catalog_file)
     try:
         catalog_contents = yaml.load(catalog_file.open().read(), Loader=yaml.SafeLoader)
     except FileNotFoundError:
@@ -142,8 +193,7 @@ def dump_dask_to_intake(dd: DataFrame, data_name: str, data_dir: Union[str, Path
         >>> os.remove(cfile)
         >>> shutil.rmtree(ddir)
     """
-    if isinstance(data_dir, str):
-        data_dir = Path(data_dir)
+    data_dir = local_or_s3_path(data_dir)
 
     parquet_dir = data_dir / data_name
 
@@ -273,7 +323,7 @@ def persist_local(dd: DataFrame, persist_dir: Union[str, Path], **kwargs):
         >>> shutil.rmtree(ddir)
     """
     data_id = str(uuid4())
-    persist_dir = persist_dir if isinstance(persist_dir, Path) else Path(persist_dir)
+    persist_dir = local_or_s3_path(persist_dir)
 
     persist_dir.mkdir(parents=True, exist_ok=True)
 

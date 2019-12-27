@@ -8,7 +8,7 @@ from intake import DataSource, Catalog
 from intake_parquet import ParquetSource
 
 from framania.daskmania.util import md5hash as ddmd5hash
-from framania.intakemania.util import add_source_to_catalog, initialize_catalog
+from framania.intakemania.util import add_source_to_catalog, initialize_catalog, local_or_s3_path
 
 
 def parse_version(v: Any):
@@ -144,8 +144,7 @@ class FramaniaExtendedIntakeCatalog:
     def dump_dask(self, dd: DataFrame, data_name: str, version: str,
                   data_dir: Union[str, Path], upstream_sources: List['FramaniaExtendedIntakeSource'] = None,
                   **kwargs):
-        if isinstance(data_dir, str):
-            data_dir = Path(data_dir)
+        data_dir = local_or_s3_path(data_dir)
 
         parquet_dir = data_dir / data_name / version
 
