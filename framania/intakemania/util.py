@@ -35,6 +35,9 @@ class S3URL(str):
         parsed = urlparse(self)
         return parsed.path.lstrip('/')
 
+    def mkdir(self, **kwargs):
+        pass
+
 
 def local_or_s3_path(v: Union[str, Path, S3URL]) -> Union[Path, S3URL]:
     """
