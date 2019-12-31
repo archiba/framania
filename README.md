@@ -40,6 +40,7 @@ pandas/daskには、DataFrame操作のための充実したAPIが用意されて
         - make_meta `#`
         - map_partitions_as_meta `#`
         - dataframe_from_series_of_pandas `#`
+        - dataframe_from_series_of_record_dict `#`
     - api `##`
 - pandasmania
     - aggregate
