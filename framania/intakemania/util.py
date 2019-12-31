@@ -87,20 +87,21 @@ def add_source_to_catalog(source: DataSource, catalog_file: Union[Path, str]):
         >>> import os
         >>> from intake.source.csv import CSVSource
         >>> import yaml
+        >>> wd = os.getcwd()
         >>> source1 = CSVSource('test/temp/test1.csv')
         >>> source1.name = 'csv-test1'
         >>> # create new catalog with source
         >>> cfile = 'test/temp/test-catalog.yaml'
         >>> add_source_to_catalog(source1, cfile)
-        >>> print(yaml.safe_load(Path(cfile).open().read()))
+        >>> print(yaml.safe_load(Path(cfile).open().read().replace(wd, '')))
         ... # doctest: +NORMALIZE_WHITESPACE
         {'metadata': {}, 'sources': {'csv-test1': {'args': {'urlpath': 'test/temp/test1.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}}}
         >>> source2 = CSVSource('test/temp/test2.csv')
         >>> source2.name = 'csv-test2'
         >>> add_source_to_catalog(source2, cfile)
-        >>> print(yaml.safe_load(Path(cfile).open().read()))
+        >>> print(yaml.safe_load(Path(cfile).open().read().replace(wd, '')))
         ... # doctest: +NORMALIZE_WHITESPACE
-        {'metadata': {}, 'sources': {'csv-test1': {'args': {'urlpath': 'test/temp/test1.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {'catalog_dir': '/Users/archiba/Documents/Projects/PN/framania/test/temp/'}}, 'csv-test2': {'args': {'urlpath': 'test/temp/test2.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}}}
+        {'metadata': {}, 'sources': {'csv-test1': {'args': {'urlpath': 'test/temp/test1.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {'catalog_dir': '/test/temp/'}}, 'csv-test2': {'args': {'urlpath': 'test/temp/test2.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}}}
         >>> os.remove(cfile)
     """
     catalog_file = local_or_s3_path(catalog_file)
