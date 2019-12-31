@@ -7,7 +7,8 @@ import dask
 import pandas
 import yaml
 from dask.dataframe import DataFrame
-from intake import DataSource
+from intake import DataSource, open_catalog, Catalog
+from intake.catalog.local import YAMLFileCatalog
 from intake_parquet import ParquetSource
 
 
@@ -69,15 +70,10 @@ def local_or_s3_path(v: Union[str, Path, S3URL]) -> Union[Path, S3URL]:
 def initialize_catalog(catalog_file: Union[Path, S3URL, str]):
     catalog_file = local_or_s3_path(catalog_file)
     try:
-        catalog_contents = yaml.load(catalog_file.open().read(), Loader=yaml.SafeLoader)
+        open_catalog(str(catalog_file))
     except FileNotFoundError:
-        catalog_contents = {'sources': {}}
-    if catalog_contents is None or \
-            not isinstance(catalog_contents['sources'], dict) or \
-            'sources' not in catalog_contents:
-        catalog_contents = {'sources': {}}
-
-    catalog_file.open('wt').write(yaml.dump(catalog_contents, Dumper=yaml.SafeDumper))
+        catalog: Catalog = open_catalog()
+        catalog.save(catalog_file)
 
 
 def add_source_to_catalog(source: DataSource, catalog_file: Union[Path, str]):
@@ -98,27 +94,23 @@ def add_source_to_catalog(source: DataSource, catalog_file: Union[Path, str]):
         >>> add_source_to_catalog(source1, cfile)
         >>> print(yaml.safe_load(Path(cfile).open().read()))
         ... # doctest: +NORMALIZE_WHITESPACE
-        {'sources': {'csv-test1': {'args': {'urlpath': 'test/temp/test1.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}}}
+        {'metadata': {}, 'sources': {'csv-test1': {'args': {'urlpath': 'test/temp/test1.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}}}
         >>> source2 = CSVSource('test/temp/test2.csv')
         >>> source2.name = 'csv-test2'
         >>> add_source_to_catalog(source2, cfile)
         >>> print(yaml.safe_load(Path(cfile).open().read()))
         ... # doctest: +NORMALIZE_WHITESPACE
-        {'sources': {'csv-test1': {'args': {'urlpath': 'test/temp/test1.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}, 'csv-test2': {'args': {'urlpath': 'test/temp/test2.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}}}
+        {'metadata': {}, 'sources': {'csv-test1': {'args': {'urlpath': 'test/temp/test1.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {'catalog_dir': '/Users/archiba/Documents/Projects/PN/framania/test/temp/'}}, 'csv-test2': {'args': {'urlpath': 'test/temp/test2.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}}}
         >>> os.remove(cfile)
     """
     catalog_file = local_or_s3_path(catalog_file)
     try:
-        catalog_contents = yaml.load(catalog_file.open().read(), Loader=yaml.SafeLoader)
+        catalog: YAMLFileCatalog = YAMLFileCatalog(path=str(catalog_file))
     except FileNotFoundError:
-        catalog_contents = {'sources': {}}
-    if catalog_contents is None or \
-            not isinstance(catalog_contents['sources'], dict) or \
-            'sources' not in catalog_contents:
-        catalog_contents = {'sources': {}}
-    catalog_contents['sources'][source.name] = source._yaml()['sources'][source.name]
-
-    catalog_file.open('wt').write(yaml.dump(catalog_contents, Dumper=yaml.SafeDumper))
+        _catalog = open_catalog()
+        _catalog.save(url=str(catalog_file))
+        catalog: YAMLFileCatalog = YAMLFileCatalog(path=str(catalog_file))
+    catalog.add(source, name=source.name)
 
 
 def dump_dask_to_intake(dd: DataFrame, data_name: str, data_dir: Union[str, Path], catalog_file: Union[Path, str],
@@ -178,7 +170,7 @@ def dump_dask_to_intake(dd: DataFrame, data_name: str, data_dir: Union[str, Path
         True
         >>> print(yaml.safe_load(Path(cfile).open().read()))
         ... # doctest: +NORMALIZE_WHITESPACE
-        {'sources': {'test-dd1': {'args': {'urlpath': 'test/temp/data-dir/test-dd1'}, 'description': '', 'driver': 'intake_parquet.source.ParquetSource', 'metadata': {}}}}
+        {'metadata': {}, 'sources': {'test-dd1': {'args': {'urlpath': 'test/temp/data-dir/test-dd1'}, 'description': '', 'driver': 'intake_parquet.source.ParquetSource', 'metadata': {}}}}
         >>> # DUMP WITHOUT COMPUTATION
         >>> psource2, job = dump_dask_to_intake(dd, 'test-dd2', ddir, cfile, compute=False)
         >>> print(job is None)
@@ -261,7 +253,7 @@ def dump_pandas_to_intake(pd: pandas.DataFrame, data_name: str, data_dir: Union[
         True
         >>> print(yaml.safe_load(Path(cfile).open().read()))
         ... # doctest: +NORMALIZE_WHITESPACE
-        {'sources': {'test-pd1': {'args': {'urlpath': 'test/temp/data-dir/test-pd1'}, 'description': '', 'driver': 'intake_parquet.source.ParquetSource', 'metadata': {}}}}
+         {'metadata': {}, 'sources': {'test-pd1': {'args': {'urlpath': 'test/temp/data-dir/test-pd1'}, 'description': '', 'driver': 'intake_parquet.source.ParquetSource', 'metadata': {}}}}
         >>> # DUMP WITHOUT COMPUTATION
         >>> psource2, job = dump_pandas_to_intake(pd, 'test-pd2', ddir, cfile, compute=False)
         >>> print(job is None)
