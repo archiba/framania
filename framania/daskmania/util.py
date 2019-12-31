@@ -12,6 +12,7 @@ def dataframe_from_series_of_pandas(series_of_pandas_dataframes: Series,
     """
     pandas.DataFrameが各行に保持されているdask.dataframe.Seriesをdask.dataframe.Dataframeに変換するAPI。
     schemaを指定すればそれを結果のスキーマとして使用し、Noneなら第１パーティションの第１行に保持されているdataframeを使用する。
+    series内のdataframeのindexは無視され、元のseriesのindexで上書きされる。
 
     Args:
         series_of_pandas_dataframes: dask dataframe from series of pandas dataframes.
@@ -66,24 +67,26 @@ def dataframe_from_series_of_pandas(series_of_pandas_dataframes: Series,
         Dask Name: create_pandas_dataframe_in_partition, 12 tasks
         >>> print(result.compute())
         ... # doctest: +NORMALIZE_WHITESPACE
-                values  support
+            values  support
         0        0      100
-        1        1      100
-        2        2      100
-        0        1      101
+        0        1      100
+        0        2      100
+        1        1      101
         1        2      101
         ..     ...      ...
-        1       99      198
-        2      100      198
-        0       99      199
-        1      100      199
-        2      101      199
+        98      99      198
+        98     100      198
+        99      99      199
+        99     100      199
+        99     101      199
         [300 rows x 2 columns]
     """
     if schema is None:
         schema = series_of_pandas_dataframes.head(1).iloc[0]
 
     def create_pandas_dataframe_in_partition(series_chunk: pandas.Series):
+        for i, v in series_chunk.iteritems():
+            v.set_axis([i] * len(v.index), axis=0, inplace=True)
         df = pandas.concat(list(series_chunk), axis=0)
         return df
 
@@ -151,22 +154,23 @@ def dataframe_from_series_of_record_dict(series_of_record_dicts: Series,
         Dask Name: create_pandas_dataframe_in_partition, 12 tasks
         >>> print(result.compute())
         ... # doctest: +NORMALIZE_WHITESPACE
-                values  support
+            values  support
         0        0      100
-        1        1      100
-        2        2      100
-        0        1      101
+        0        1      100
+        0        2      100
+        1        1      101
         1        2      101
         ..     ...      ...
-        1       99      198
-        2      100      198
-        0       99      199
-        1      100      199
-        2      101      199
+        98      99      198
+        98     100      198
+        99      99      199
+        99     100      199
+        99     101      199
         [300 rows x 2 columns]
     """
     def create_pandas_dataframe_in_partition(series_chunk: pandas.Series):
-        df = pandas.concat(list(series_chunk.apply(pandas.DataFrame.from_records)), axis=0)
+        df_list = [pandas.DataFrame.from_records(v, index=[i] * len(v)) for i, v in series_chunk.iteritems()]
+        df = pandas.concat(list(df_list), axis=0)
         return df
 
     ddf = series_of_record_dicts.map_partitions(create_pandas_dataframe_in_partition, meta=schema)
