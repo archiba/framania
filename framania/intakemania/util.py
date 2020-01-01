@@ -323,7 +323,7 @@ def persist_local(dd: DataFrame, persist_dir: Union[str, Path], **kwargs):
 
     persist_dir.mkdir(parents=True, exist_ok=True)
 
-    persist_catalog_file = Path(persist_dir) / 'persist_catalog.yaml'
+    persist_catalog_file = persist_dir / 'persist_catalog.yaml'
     psource, _ = dump_dask_to_intake(dd, data_id, persist_dir, persist_catalog_file, **kwargs)
 
     new_dd = psource.to_dask()
