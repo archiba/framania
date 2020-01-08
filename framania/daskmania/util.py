@@ -169,8 +169,12 @@ def dataframe_from_series_of_record_dict(series_of_record_dicts: Series,
         [300 rows x 2 columns]
     """
     def create_pandas_dataframe_in_partition(series_chunk: pandas.Series):
-        df_list = [pandas.DataFrame.from_records(v, index=[i] * len(v)) for i, v in series_chunk.iteritems()]
-        df = pandas.concat(list(df_list), axis=0)
+        records = []
+        index = []
+        for i, v in series_chunk.iteritems():
+            records.extend(v)
+            index.extend([i] * len(v))
+        df = pandas.DataFrame.from_records(records, index=index)
         return df
 
     ddf = series_of_record_dicts.map_partitions(create_pandas_dataframe_in_partition, meta=schema)
