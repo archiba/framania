@@ -211,3 +211,7 @@ def md5hash(dd: DataFrame) -> hashlib.md5:
     for v in results:
         m.update(v.encode('utf-8'))
     return m.hexdigest()
+
+
+def adaptive_head(ddf: DataFrame) -> pandas.DataFrame:
+    ddf
