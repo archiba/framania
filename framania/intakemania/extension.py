@@ -4,11 +4,12 @@ from typing import List, Optional, Any, Union, Dict, Tuple
 
 import pandas
 from dask.dataframe import DataFrame, from_pandas
-from intake import DataSource, Catalog
+from intake import DataSource
+from intake.catalog import Catalog
 from intake_parquet import ParquetSource
 
 from framania.daskmania.util import md5hash as ddmd5hash
-from framania.intakemania.util import add_source_to_catalog, initialize_catalog, local_or_s3_path
+from framania.intakemania.util import add_source_to_catalog, initialize_catalog, local_or_s3_path, S3URL
 
 
 def parse_version(v: Any):
@@ -36,12 +37,9 @@ def validate_version(version: str):
 
 
 class FramaniaExtendedIntakeCatalog:
-    def __init__(self, intake_catalog_file: Path):
-        try:
-            self.intake_catalog = Catalog(str(intake_catalog_file))
-        except:
-            initialize_catalog(intake_catalog_file)
-            self.intake_catalog = Catalog(str(intake_catalog_file))
+    def __init__(self, intake_catalog_file: Union[Path, S3URL, str]):
+        self.intake_catalog = initialize_catalog(intake_catalog_file)
+        self.path = intake_catalog_file
 
     def find_by_version_name(self, version_name: str) -> 'FramaniaExtendedIntakeSource':
         source = self.intake_catalog[version_name]
@@ -94,8 +92,8 @@ class FramaniaExtendedIntakeCatalog:
             return self.find_latest_source_by_name(item)
 
     def append(self, value: 'FramaniaExtendedIntakeSource'):
-        add_source_to_catalog(value.intake_source, self.intake_catalog.path)
-        self.intake_catalog = Catalog(self.intake_catalog.path)
+        add_source_to_catalog(value.intake_source, self.path)
+        self.intake_catalog = initialize_catalog(self.path)
 
     def validate(self) -> Tuple[bool, Dict]:
         result = {}

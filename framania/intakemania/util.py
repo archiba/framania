@@ -7,7 +7,8 @@ import dask
 import pandas
 import yaml
 from dask.dataframe import DataFrame
-from intake import DataSource, open_catalog, Catalog
+from intake import DataSource, open_catalog
+from intake.catalog import Catalog
 from intake.catalog.local import YAMLFileCatalog
 from intake_parquet import ParquetSource
 
@@ -70,10 +71,11 @@ def local_or_s3_path(v: Union[str, Path, S3URL]) -> Union[Path, S3URL]:
 def initialize_catalog(catalog_file: Union[Path, S3URL, str]):
     catalog_file = local_or_s3_path(catalog_file)
     try:
-        open_catalog(str(catalog_file))
+        return open_catalog(str(catalog_file))
     except FileNotFoundError:
         catalog: Catalog = open_catalog()
-        catalog.save(catalog_file)
+        catalog.save(str(catalog_file))
+        return catalog
 
 
 def add_source_to_catalog(source: DataSource, catalog_file: Union[Path, str]):

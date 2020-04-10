@@ -1,14 +1,12 @@
-from tempfile import mkdtemp, mktemp
+from tempfile import mktemp
 from unittest import TestCase
 
 import intake
-import pandas
 from dask.dataframe.utils import make_meta
-from intake.catalog.local import YAMLFileCatalog
 from intake.source.csv import CSVSource
 
-from framania.intakemania.user_defined_class_parquet_source import upload_with_user_defined_class, UserDefinedClassParquetSource
-from framania.pandasmania.util import md5hash
+from framania.intakemania.user_defined_class_parquet_source import upload_with_user_defined_class, \
+    UserDefinedClassParquetSource
 
 
 class MyClass:

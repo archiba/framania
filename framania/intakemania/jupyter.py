@@ -4,7 +4,7 @@ from typing import List
 
 from IPython import get_ipython
 from IPython.core.magic import register_line_magic
-from intake import Catalog
+from intake.catalog import Catalog
 
 from framania.hvmania.manager import HVManiaManager
 from framania.intakemania.extension import get_version_name, FramaniaExtendedIntakeSource
