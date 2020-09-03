@@ -1,7 +1,7 @@
 build
 dist
 *.egg-info
-
+venv
 .idea
 
 MANIFEST

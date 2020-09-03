@@ -164,7 +164,6 @@ def dump_dask_to_intake(dd: DataFrame, data_name: str, data_dir: Union[str, Path
         >>> print(psource1.read())
         ... # doctest: +NORMALIZE_WHITESPACE
                a  b  c label
-        index
         100    1  2  5     a
         200    2  3  6     b
         300    3  4  7     c
@@ -183,7 +182,6 @@ def dump_dask_to_intake(dd: DataFrame, data_name: str, data_dir: Union[str, Path
         >>> print(psource2.read())
         ... # doctest: +NORMALIZE_WHITESPACE
                a  b  c label
-        index
         100    1  2  5     a
         200    2  3  6     b
         300    3  4  7     c
@@ -247,7 +245,6 @@ def dump_pandas_to_intake(pd: pandas.DataFrame, data_name: str, data_dir: Union[
         >>> print(psource1.read())
         ... # doctest: +NORMALIZE_WHITESPACE
                a  b  c label
-        index
         100    1  2  5     a
         200    2  3  6     b
         300    3  4  7     c
@@ -266,7 +263,6 @@ def dump_pandas_to_intake(pd: pandas.DataFrame, data_name: str, data_dir: Union[
         >>> print(psource2.read())
         ... # doctest: +NORMALIZE_WHITESPACE
                a  b  c label
-        index
         100    1  2  5     a
         200    2  3  6     b
         300    3  4  7     c
@@ -312,7 +308,6 @@ def persist_local(dd: DataFrame, persist_dir: Union[str, Path], **kwargs):
         >>> print(dd2.compute())
         ... # doctest: +NORMALIZE_WHITESPACE
                a  b  c label
-        index
         100    1  2  5     a
         200    2  3  6     b
         300    3  4  7     c

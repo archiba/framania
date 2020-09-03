@@ -1,7 +1,7 @@
 pandas
-dask
+dask[dataframe]
 pytest
-intake
+intake==0.5.5
 intake_parquet
 ipython
 jupyter
