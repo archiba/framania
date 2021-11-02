@@ -58,7 +58,7 @@ def merge_on_columns_without_breaking_index(left_df: DataFrame, right_df: DataFr
     >>> result
     ... # doctest: +NORMALIZE_WHITESPACE
              A  B  C   c
-        a b             
+        a b
         1 2  1  2  a  aa
         2 2  2  2  b  ba
         3 3  3  3  c  ca
@@ -103,5 +103,5 @@ def merge_on_columns_without_breaking_index(left_df: DataFrame, right_df: DataFr
 
     merge_result = left_df.merge(right_df, left_on=left_on, right_on=right_on, how=how)
     if reindex_by_left or reindex_by_right:
-        merge_result.set_index(reindex_by, inplace=True)
+        merge_result = merge_result.set_index(reindex_by)
     return merge_result
