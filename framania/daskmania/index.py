@@ -20,7 +20,16 @@ def _read_dask_dataframe_from_partitioned_parquets(parquet_dir_root: Union[str, 
 
     name = f"framania-read-from-partitioned-parquets-{str(uuid4())}"
     procs = {}
-    divisions = keys
+
+    if len(keys) == 1:
+        try:
+            base_diff = keys[0] * 2
+        except:
+            base_diff = keys[0] + 1
+    else:
+        base_diff = keys[1] - keys[0]
+
+    divisions = keys + [keys[-1] + base_diff]
 
     partition_dtype = normal_ddf._meta[partition_on].cat.categories.dtype
     normal_ddf._meta[partition_on] = normal_ddf._meta[partition_on].astype(partition_dtype)
