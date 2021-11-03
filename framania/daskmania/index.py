@@ -16,20 +16,12 @@ def _read_parquet_files_then_concat(files: List[Union[str, Path]], partition_on:
 def _read_dask_dataframe_from_partitioned_parquets(parquet_dir_root: Union[str, Path], partition_on: str, **options):
     p = Path(parquet_dir_root)
     normal_ddf = dask.dataframe.read_parquet(parquet_dir_root)
-    keys = normal_ddf[partition_on].drop_duplicates().compute().sort_values()
+    keys = list(sorted(normal_ddf[partition_on].drop_duplicates().compute()))
 
     name = f"framania-read-from-partitioned-parquets-{str(uuid4())}"
     procs = {}
 
-    if len(keys) == 1:
-        try:
-            base_diff = keys.iloc[0] * 2
-        except:
-            base_diff = keys.iloc[0] + 1
-    else:
-        base_diff = keys.iloc[1] - keys.iloc[0]
-
-    divisions = keys + [keys.iloc[-1] + base_diff]
+    divisions = keys + [keys[-1]]
 
     partition_dtype = normal_ddf._meta[partition_on].cat.categories.dtype
     normal_ddf._meta[partition_on] = normal_ddf._meta[partition_on].astype(partition_dtype)
