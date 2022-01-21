@@ -1,11 +1,11 @@
-pandas
-dask[dataframe]
-pytest
-intake==0.5.5
-intake_parquet
-ipython
+pandas>=1.3.4
+dask[dataframe]>=2022.1.0
+intake>=0.6.5
+intake_parquet>=0.2.3
+ipython>=8.0.1
 jupyter
 dill
 holoviews
 bokeh
 flask
+black>=21.11b1

@@ -9,17 +9,21 @@ wheel = "*"
 twine = "*"
 
 [packages]
-pandas = "*"
-dask = "*"
+pandas = ">=1.3.4"
+dask = ">=2021.10.0"
 pytest = "*"
-intake = "*"
-intake-parquet = "*"
-ipython = "*"
+intake = ">=0.6.5"
+intake-parquet = ">=0.2.3"
+ipython = ">=8.0.1"
 jupyter = "*"
 dill = "*"
 holoviews = "*"
 bokeh = "*"
 Flask = "*"
+black = ">=21.11b1"
 
 [requires]
 python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true

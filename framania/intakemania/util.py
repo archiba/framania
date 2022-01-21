@@ -103,7 +103,7 @@ def add_source_to_catalog(source: DataSource, catalog_file: Union[Path, str]):
         >>> add_source_to_catalog(source2, cfile)
         >>> print(yaml.safe_load(Path(cfile).open().read().replace(wd, '')))
         ... # doctest: +NORMALIZE_WHITESPACE
-        {'metadata': {}, 'sources': {'csv-test1': {'args': {'urlpath': 'test/temp/test1.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {'catalog_dir': '/test/temp/'}}, 'csv-test2': {'args': {'urlpath': 'test/temp/test2.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}}}
+        {'metadata': {}, 'sources': {'csv-test1': {'args': {'urlpath': 'test/temp/test1.csv'}, 'container': 'dataframe', 'description': '', 'direct_access': 'forbid', 'driver': ['csv'], 'metadata': {}, 'name': 'csv-test1', 'plugin': ['csv'], 'user_parameters': []}, 'csv-test2': {'args': {'urlpath': 'test/temp/test2.csv'}, 'description': '', 'driver': 'intake.source.csv.CSVSource', 'metadata': {}}}}
         >>> os.remove(cfile)
     """
     catalog_file = local_or_s3_path(catalog_file)
@@ -168,7 +168,9 @@ def dump_dask_to_intake(dd: DataFrame, data_name: str, data_dir: Union[str, Path
         200    2  3  6     b
         300    3  4  7     c
         400    4  5  8     d
-        >>> print(job is None)
+        >>> print(len(job) == 1)
+        True
+        >>> print(job[0] is None)
         True
         >>> print(yaml.safe_load(Path(cfile).open().read()))
         ... # doctest: +NORMALIZE_WHITESPACE
@@ -249,7 +251,9 @@ def dump_pandas_to_intake(pd: pandas.DataFrame, data_name: str, data_dir: Union[
         200    2  3  6     b
         300    3  4  7     c
         400    4  5  8     d
-        >>> print(job is None)
+        >>> print(len(job) == 1)
+        True
+        >>> print(job[0] is None)
         True
         >>> print(yaml.safe_load(Path(cfile).open().read()))
         ... # doctest: +NORMALIZE_WHITESPACE

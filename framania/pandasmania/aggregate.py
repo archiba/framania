@@ -30,20 +30,20 @@ def flatten_aggregated_columns(pd: DataFrame):
         >>> groupby_result = groupby.agg({'a': ['sum', 'min'], 'b': ['mean', 'sum', 'max']})
         >>> print(groupby_result)
         ... # doctest: +NORMALIZE_WHITESPACE
-               a         b
-             sum  min mean  sum  max
+               a           b
+             sum  min   mean  sum  max
         key
-        0      2    1  150  300  300
-        1     11    1  250  500  400
-        2    200  100  350  700  500
+        0      2    1  150.0  300  300
+        1     11    1  250.0  500  400
+        2    200  100  350.0  700  500
         >>> flatten = flatten_aggregated_columns(groupby_result)
         >>> print(flatten)
         ... # doctest: +NORMALIZE_WHITESPACE
              a_sum  a_min  b_mean  b_sum  b_max
         key
-        0        2      1     150    300    300
-        1       11      1     250    500    400
-        2      200    100     350    700    500
+        0        2      1   150.0    300    300
+        1       11      1   250.0    500    400
+        2      200    100   350.0    700    500
         >>> print(flatten_aggregated_columns(pd))
         ... # doctest: +NORMALIZE_WHITESPACE
              a    b  key

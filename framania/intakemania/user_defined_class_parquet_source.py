@@ -56,17 +56,21 @@ class UserDefinedClassParquetSource(ParquetSource):
             "ttl": ttl,
             'cat': {} if self.cat is None else self.cat.__getstate__(),
         })
-        store.add(self._tok, out)
+        from dask.base import tokenize
+        tok = tokenize(self)
+        store.add(tok, out)
         return out
 
     def export(self, path, **kwargs):
         df = self.to_dask()
         out = upload_with_user_defined_class(df, path, self.metadata["user_defined_class_columns"], **kwargs)
+        from dask.base import tokenize
+        tok = tokenize(self)
         metadata = {'timestamp': time(),
                     'original_metadata': self.metadata,
                     'original_source': self.__getstate__(),
                     'original_name': self.name,
-                    'original_tok': self._tok,
+                    'original_tok': tok,
                     'persist_kwargs': kwargs,}
         out.metadata.update(metadata)
         out.name = self.name

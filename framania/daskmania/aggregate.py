@@ -100,13 +100,13 @@ def aggregate_by_named_index_and_keys(dd: DataFrame, keys: List[Any], agg: Dict[
         >>> result = aggregate_by_named_index_and_keys(dd, ['a'], {'b': ['mean', 'max']})
         >>> print(result.compute())
         ... # doctest: +NORMALIZE_WHITESPACE
-               a    b
-                 mean  max
+               a      b
+                   mean  max
         idx
-        0      1  150  300
-        1      1  400  400
-        1     10  100  100
-        2    100  350  500
+        0      1  150.0  300
+        1      1  400.0  400
+        1     10  100.0  100
+        2    100  350.0  500
     """
     index_name = dd.index.name
     groupby_keys = [index_name] + keys
