@@ -9,3 +9,4 @@ holoviews
 bokeh
 flask
 black>=21.11b1
+distributed>=2022.1.0
