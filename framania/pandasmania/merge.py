@@ -1,10 +1,11 @@
-from typing import List
+from typing import List, Optional
 from pandas import DataFrame, MultiIndex
 
 
 def merge_on_columns_without_breaking_index(left_df: DataFrame, right_df: DataFrame,
-                                            left_on: List[str], right_on: List[str],
-                                            how: str,
+                                            on: Optional[List[str]]=None,
+                                            left_on: Optional[List[str]]=None, right_on: Optional[List[str]]=None,
+                                            how: str = 'inner',
                                             keep_left_index: bool = True,
                                             keep_right_index: bool = True,
                                             reindex_by_left: bool = True,
@@ -70,6 +71,13 @@ def merge_on_columns_without_breaking_index(left_df: DataFrame, right_df: DataFr
         4 6  4  6  i  ia
         5 6  5  6  j  ja
     """
+
+    if (on is None) and ((left_on is None) or (right_on is None)):
+        raise ValueError("onを指定するか、left_onとright_onの両方を指定する必要があります。")
+    if on is not None:
+        left_on = on
+        right_on = on
+
     if isinstance(left_df.index, MultiIndex):
         left_name = left_df.index.names
     else:
