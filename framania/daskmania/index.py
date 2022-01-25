@@ -142,7 +142,7 @@ def set_hash_index_via_disk(df: dask.dataframe.DataFrame, columns: List[str],
                             **options):
     index_keys = df[columns].drop_duplicates().compute()
     index_name = f'HASH-{"-".join([str(v) for v in columns])}'
-    index_keys[index_name] = index_keys.apply(_pandas_row_to_hash, axis=1)
+    index_keys[index_name] = index_keys.apply(_pandas_row_to_hash, columns=columns, axis=1)
 
     meta = pandas.DataFrame({c: df._meta[c] for c in df.columns})
     meta[index_name] = pandas.Series([], dtype='str')
