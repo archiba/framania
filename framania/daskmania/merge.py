@@ -51,7 +51,7 @@ def merge_dask_df_on_columns_without_breaking_index(left_df: DataFrame, right_df
                                                     keep_right_index: bool = True,
                                                     reindex_by_left: bool = True,
                                                     reindex_by_right: bool = False):
-    assert left_df.divisions == right_df.divisions
+    assert (set(left_df.divisions) <= set(right_df.divisions)) or (set(left_df.divisions) >= set(right_df.divisions))
     return dask.dataframe.multi.map_partitions(
         lambda left, right: merge_on_columns_without_breaking_index(left, right,
                                                                     on, left_on, right_on,

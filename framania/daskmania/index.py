@@ -1,6 +1,4 @@
 import shutil
-from base64 import b64encode
-from hashlib import sha1
 from pathlib import Path
 from typing import Union, List, Any, Optional
 from uuid import uuid4
