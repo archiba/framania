@@ -149,5 +149,5 @@ def set_hash_index_via_disk(df: dask.dataframe.DataFrame, columns: List[str],
     index_name = f'HASH-{"|".join([str(v) for v in columns])}'
     index_keys[index_name] = index_keys.apply(_pandas_row_to_hash, axis=1)
 
-    df_ = df.apply(lambda df: df.reset_index(drop=drop_existing_index).merge(index_keys, on=columns))
+    df_ = df.map_partitions(lambda df: df.reset_index(drop=drop_existing_index).merge(index_keys, on=columns))
     return set_index_via_disk(df_, index_name, temporary_parquet_root, **options)
