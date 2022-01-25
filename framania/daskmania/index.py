@@ -146,8 +146,16 @@ def set_hash_index_via_disk(df: dask.dataframe.DataFrame, columns: List[str],
     if delete_existing_temporary_directory:
         shutil.rmtree(str(temporary_parquet_root), ignore_errors=True)
     index_keys = df[columns].drop_duplicates().compute()
-    index_name = f'HASH-{"|".join([str(v) for v in columns])}'
+    index_name = f'HASH-{"-".join([str(v) for v in columns])}'
     index_keys[index_name] = index_keys.apply(_pandas_row_to_hash, axis=1)
 
-    df_ = df.map_partitions(lambda df: df.reset_index(drop=drop_existing_index).merge(index_keys, on=columns))
+    meta = pandas.DataFrame({c: df._meta[c] for c in df.columns})
+    meta[index_name] = pandas.Series([], dtype='str')
+    df_ = df.map_partitions(lambda df: df.reset_index(drop=drop_existing_index).merge(index_keys, on=columns),
+                            meta=meta)
+
+    if df.known_divisions:
+        df_ = df_.clear_divisions()
+        df_._meta.reset_index(drop=True, inplace=True)
+
     return set_index_via_disk(df_, index_name, temporary_parquet_root, **options)
