@@ -131,11 +131,8 @@ def set_index_via_disk(df: dask.dataframe.DataFrame, column: str,
 set_mono_index_via_disk = set_index_via_disk
 
 
-def _pandas_row_to_hash(row) -> str:
-    s1 = sha1()
-    for v in row:
-        s1.update(str(v).encode())
-    return b64encode(s1.digest()).decode('utf8')
+def _pandas_row_to_hash(row, columns) -> int:
+    return hash(tuple(row[c] for c in columns))
 
 
 def set_hash_index_via_disk(df: dask.dataframe.DataFrame, columns: List[str],
@@ -143,8 +140,6 @@ def set_hash_index_via_disk(df: dask.dataframe.DataFrame, columns: List[str],
                             drop_existing_index: bool = True,
                             delete_existing_temporary_directory: bool = True,
                             **options):
-    if delete_existing_temporary_directory:
-        shutil.rmtree(str(temporary_parquet_root), ignore_errors=True)
     index_keys = df[columns].drop_duplicates().compute()
     index_name = f'HASH-{"-".join([str(v) for v in columns])}'
     index_keys[index_name] = index_keys.apply(_pandas_row_to_hash, axis=1)
@@ -157,5 +152,4 @@ def set_hash_index_via_disk(df: dask.dataframe.DataFrame, columns: List[str],
     if df.known_divisions:
         df_ = df_.clear_divisions()
         df_._meta.reset_index(drop=True, inplace=True)
-
-    return set_index_via_disk(df_, index_name, temporary_parquet_root, **options)
+    return set_index_via_disk(df_, index_name, temporary_parquet_root, delete_existing_temporary_directory, **options)
