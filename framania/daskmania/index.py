@@ -53,7 +53,7 @@ def duplicate_pandas_for_each_distribution_key(pandas_df: pandas.DataFrame, dask
                                                temporary_parquet_root: Union[str, Path],
                                                dimension_merge_keys: Optional[List[str]] = None,
                                                delete_existing_temporary_directory: bool = True):
-    assert (dask_df.index.map_partitions(lambda i: i.nunique()).compute() == 1).all(), \
+    assert (dask_df.index.map_partitions(lambda i: i.nunique()).compute().isin([0, 1])).all(), \
         "Please reindex dask dataframe as mono-index distribution using `set_mono_index_via_disk`"
     if delete_existing_temporary_directory:
         shutil.rmtree(str(temporary_parquet_root), ignore_errors=True)
