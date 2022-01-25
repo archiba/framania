@@ -1,4 +1,6 @@
 import shutil
+from base64 import b64encode
+from hashlib import sha1
 from pathlib import Path
 from typing import Union, List, Any, Optional
 from uuid import uuid4
@@ -127,3 +129,25 @@ def set_index_via_disk(df: dask.dataframe.DataFrame, column: str,
 
 
 set_mono_index_via_disk = set_index_via_disk
+
+
+def _pandas_row_to_hash(row) -> str:
+    s1 = sha1()
+    for v in row:
+        s1.update(str(v).encode())
+    return b64encode(s1.digest()).decode('utf8')
+
+
+def set_hash_index_via_disk(df: dask.dataframe.DataFrame, columns: List[str],
+                            temporary_parquet_root: Union[str, Path],
+                            drop_existing_index: bool = True,
+                            delete_existing_temporary_directory: bool = True,
+                            **options):
+    if delete_existing_temporary_directory:
+        shutil.rmtree(str(temporary_parquet_root), ignore_errors=True)
+    index_keys = df[columns].drop_duplicates().compute()
+    index_name = f'HASH-{"|".join([str(v) for v in columns])}'
+    index_keys[index_name] = index_keys.apply(_pandas_row_to_hash, axis=1)
+
+    df_ = df.apply(lambda df: df.reset_index(drop=drop_existing_index).merge(index_keys, on=columns))
+    return set_index_via_disk(df_, index_name, temporary_parquet_root, **options)
