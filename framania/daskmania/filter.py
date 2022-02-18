@@ -37,6 +37,11 @@ def drop_rows_by_index(dd: DataFrame, drop_index: List[Any]):
     return dd.map_partitions(lambda pd: pd[~pd.index.isin(drop_index)])
 
 
+def drop_duplicates_two_steps(dd: DataFrame, subset: List[Any], keep: Union[str, bool] = 'first'):
+    map_dd = dd.map_partitions(lambda pd: pd.drop_duplicates(subset, keep=keep))
+    return map_dd.drop_duplicates(subset, keep=keep)
+
+
 def drop_duplicates_by_named_index_and_keys(dd: DataFrame, subset: List[Any], keep: Union[str, bool] = 'first'):
     """
         API to do drop_duplicates with target subset including named index.
