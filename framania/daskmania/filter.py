@@ -38,7 +38,7 @@ def drop_rows_by_index(dd: DataFrame, drop_index: List[Any]):
 
 
 def drop_duplicates_two_steps(dd: DataFrame, subset: List[Any], keep: Union[str, bool] = 'first'):
-    map_dd = dd.map_partitions(lambda pd: pd.drop_duplicates(subset, keep=keep))
+    map_dd = dd.map_partitions(lambda pd: pd.drop_duplicates(subset, keep=keep), meta=dd._meta)
     return map_dd.drop_duplicates(subset, keep=keep)
 
 
