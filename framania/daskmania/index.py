@@ -17,7 +17,7 @@ def _concat_dimension_and_add_partition_key(df: pandas.DataFrame,
     df['__merge__'] = 1
     dimension_row = pandas.DataFrame([dimension_row])
     dimension_row['__merge__'] = 1
-    merged = dimension_row.merge(df, on=merge_keys + ['__merge__'], how='left')
+    merged = dimension_row.merge(df, on=merge_keys + ['__merge__'], how='inner')
     del merged['__merge__']
     merged[partition_on] = partition_value
     return merged.set_index(partition_on)
