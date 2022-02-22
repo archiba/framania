@@ -5,7 +5,6 @@ from uuid import uuid4
 
 import dask.dataframe
 import pandas
-from framania.daskmania.filter import drop_duplicates_two_steps
 
 
 def _concat_dimension_and_add_partition_key(df: pandas.DataFrame,
@@ -96,7 +95,7 @@ def _read_parquet_files_then_concat(files: List[Union[str, Path]], partition_on:
 def _read_dask_dataframe_from_partitioned_parquets(parquet_dir_root: Union[str, Path], partition_on: str, **options):
     p = Path(parquet_dir_root)
     normal_ddf = dask.dataframe.read_parquet(parquet_dir_root)
-    keys = list(sorted(drop_duplicates_two_steps(normal_ddf[[partition_on]], [partition_on]).compute()))
+    keys = list(sorted(normal_ddf[partition_on].drop_duplicates().compute()))
 
     name = f"framania-read-from-partitioned-parquets-{str(uuid4())}"
     procs = {}
@@ -139,7 +138,7 @@ def set_hash_index_via_disk(df: dask.dataframe.DataFrame, columns: List[str],
                             drop_existing_index: bool = True,
                             delete_existing_temporary_directory: bool = True,
                             **options):
-    index_keys = drop_duplicates_two_steps(df[columns], columns).compute()
+    index_keys = df[columns].drop_duplicates().compute()
     index_name = f'HASH-{"-".join([str(v) for v in columns])}'
     index_keys[index_name] = index_keys.apply(_pandas_row_to_hash, columns=columns, axis=1)
 
