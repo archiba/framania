@@ -96,7 +96,7 @@ def _read_parquet_files_then_concat(files: List[Union[str, Path]], partition_on:
 def _read_dask_dataframe_from_partitioned_parquets(parquet_dir_root: Union[str, Path], partition_on: str, **options):
     p = Path(parquet_dir_root)
     normal_ddf = dask.dataframe.read_parquet(parquet_dir_root)
-    keys = list(sorted(drop_duplicates_two_steps(normal_ddf[partition_on], [partition_on]).compute()))
+    keys = list(sorted(drop_duplicates_two_steps(normal_ddf[[partition_on]], [partition_on]).compute()))
 
     name = f"framania-read-from-partitioned-parquets-{str(uuid4())}"
     procs = {}
