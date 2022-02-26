@@ -63,7 +63,7 @@ def duplicate_pandas_for_each_distribution_key(pandas_df: pandas.DataFrame, dask
     parquet_file = temporary_parquet_root / "pandas_df.parquet"
     pandas_df.to_parquet(parquet_file)
 
-    keys = dimension_df.index
+    keys = list(dimension_df.index)
     name = f"framania-duplicate-pandas-for-each-distribution-key-{str(uuid4())}"
     procs = {}
 
